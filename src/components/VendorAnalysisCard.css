@@ -1,0 +1,26 @@
+.vendor-analysis-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 24px;
+  max-width: 420px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.vendor-analysis-card-title {
+  margin-bottom: 4px;
+}
+
+.vendor-analysis-card-alias {
+  color: #888;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.vendor-analysis-card-row {
+  margin-bottom: 8px;
+}
+
+.vendor-analysis-card-date {
+  color: #aaa;
+  font-size: 12px;
+}

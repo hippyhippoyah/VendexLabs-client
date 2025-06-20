@@ -87,3 +87,39 @@ export const createSubscription = async (vendors) => {
 
     return await response.json();
 }
+
+export const getVendorsAnalysis = async (vendors) => {
+    const accessToken = getIdToken();
+    const vendorQuery = vendors && vendors.length > 0
+        ? `?vendors=${encodeURIComponent(vendors.join(','))}`
+        : '';
+    const response = await fetch(`${API_BASE_URL}/vendors${vendorQuery}`, {
+        method: "GET",
+        headers: {
+            "Authorization": `Bearer ${accessToken}`,
+            "Content-Type": "application/json"
+        }
+    });
+    if (!response.ok) {
+        throw new Error("Network response was not ok");
+    }
+    return await response.json();
+
+    
+}
+
+export const getAllVendors = async () => {
+    const accessToken = getIdToken();
+    const response = await fetch(`${API_BASE_URL}/vendors/all`, {
+        method: "GET",
+        headers: {
+            "Authorization": `Bearer ${accessToken}`,
+            "Content-Type": "application/json"
+        }
+    });
+    if (!response.ok) {
+        throw new Error("Network response was not ok");
+    }
+    return await response.json();
+}
+            

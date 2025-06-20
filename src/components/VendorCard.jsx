@@ -12,7 +12,7 @@ const VendorCard = ({ vendor, dateAdded }) => {
 
   return (
     <div className={`vendor-card${hidden ? ' vendor-card--hidden' : ''}`} key={vendor}>
-      <span><strong>Vendor:</strong> {vendor}</span>
+      <span><strong>{vendor}</strong></span>
       <span><strong>Date Added:</strong> {dateAdded}</span>
       <button
         className="vendor-delete-btn"

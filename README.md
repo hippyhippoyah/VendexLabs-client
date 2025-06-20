@@ -1,12 +1,31 @@
-# React + Vite
+# VendexLabs Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This is the client website for VendexLabs.
 
-Currently, two official plugins are available:
+## Getting Started
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+1. **Clone the repository** and navigate to the project directory.
 
-## Expanding the ESLint configuration
+2. **Create a `.env` file** in the root of the project with the following contents (replace values as needed):
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+    ```
+    VITE_API_URL= ???
+    VITE_COGNITO_AUTHORITY= ???
+    VITE_COGNITO_CLIENT_ID= ???
+    VITE_COGNITO_REDIRECT_URI= ???
+    VITE_COGNITO_DOMAIN= ???
+    ```
+
+3. **Install dependencies:**
+
+    ```
+    npm install
+    ```
+
+4. **Start the development server:**
+
+    ```
+    npm run dev
+    ```
+
+The app should now be running at [http://localhost:5173](http://localhost:5173).

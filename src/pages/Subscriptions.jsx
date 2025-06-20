@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import vendexLogo from '../assets/logo.png'
 import '../App.css'
-import { getSubscriptions, createSubscription } from "../utils/apis.js";
+import { getSubscriptions, createSubscription, getAllVendors } from "../utils/apis.js";
 import VendorCard from "../components/VendorCard.jsx";
 import './Subscriptions.css';
 import Navbar from '../components/Navbar.jsx';
@@ -9,26 +9,40 @@ import Navbar from '../components/Navbar.jsx';
 
 function Subscriptions() {
   const [subscriptions, setSubscriptions] = useState([])
-  const [newVendor, setNewVendor] = useState("")
+  const [vendors, setVendors] = useState([])
+  const [inputValue, setInputValue] = useState("")
+  const [showDropdown, setShowDropdown] = useState(false)
 
   useEffect(() => {
     getSubscriptions().then((response) => {
-      console.log("response: ", response);
       setSubscriptions(response.vendors);
+    })
+    getAllVendors().then((response) => {
+      setVendors(response || []);
     })
   }, []);
 
+  const filteredVendors = vendors.filter(vendor =>
+    vendor.toLowerCase().includes(inputValue.toLowerCase())
+  );
+
   const handleAddSubscription = () => {
-    if (!newVendor.trim()) return;
-    createSubscription([newVendor]).then((response) => {
-      console.log("response: ", response);
-      setSubscriptions(prev => [...prev, { name: newVendor, date: new Date().toLocaleDateString() }]);
+    const vendorToAdd = inputValue.trim();
+    if (!vendorToAdd) return;
+    createSubscription([vendorToAdd]).then((response) => {
+      setSubscriptions(prev => [...prev, { name: vendorToAdd, date: new Date().toLocaleDateString() }]);
     }
     ).catch((error) => {
       console.error("Error creating subscription: ", error);
     }
     );
-    setNewVendor("");
+    setInputValue("");
+    setShowDropdown(false);
+  };
+
+  const handleSelectVendor = (vendor) => {
+    setInputValue(vendor);
+    setShowDropdown(false);
   };
 
   return (
@@ -36,19 +50,40 @@ function Subscriptions() {
       <Navbar />
       <div className="subscriptions-page-container">
         <div className="subscriptions-left">
-          <h1>VendexLabs Subscription Manager</h1>
-          <div className="add-subscription-bar">
-            <input
-              type="text"
-              placeholder="Add new subscription"
-              value={newVendor}
-              onChange={e => setNewVendor(e.target.value)}
-              className="add-subscription-input"
-              onKeyDown={e => { if (e.key === "Enter") handleAddSubscription(); }}
-            />
+          <h2>VendexLabs Subscription Manager</h2>
+          <div className="add-subscription-bar add-subscription-bar-row">
+              <input
+                type="text"
+                placeholder="Search or enter vendor"
+                value={inputValue}
+                onChange={e => {
+                  setInputValue(e.target.value);
+                  setShowDropdown(true);
+                }}
+                onFocus={() => setShowDropdown(true)}
+                onBlur={() => setShowDropdown(false)}
+                className="add-subscription-input"
+                autoComplete="off"
+              />
+              {showDropdown && filteredVendors.length > 0 && (
+                <div>
+                  <ul className="vendor-dropdown">
+                    {filteredVendors.map((vendor, idx) => (
+                      <li
+                        key={idx}
+                        className="vendor-dropdown-item"
+                        onMouseDown={() => handleSelectVendor(vendor)}
+                      >
+                        {vendor}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             <button
               onClick={handleAddSubscription}
               className="add-subscription-btn"
+              disabled={!inputValue.trim()}
             >
               Add
             </button>
