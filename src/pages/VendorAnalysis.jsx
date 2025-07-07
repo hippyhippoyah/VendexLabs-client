@@ -10,7 +10,8 @@ const VendorAnalysis = () => {
     getSubscriptions()
       .then((response) => {
         const vendorNames = (response?.vendors || []).map(v => v.name);
-        return getVendorsAnalysis(vendorNames);
+        return getVendorsAnalysis(["Nvidia"]);
+        // Temporarily hardcoded to fetch Nvidia. Will complete later
       })
       .then(setData)
       .catch(console.error);
