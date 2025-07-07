@@ -10,8 +10,8 @@ const VendorAnalysis = () => {
     getSubscriptions()
       .then((response) => {
         const vendorNames = (response?.vendors || []).map(v => v.name);
-        return getVendorsAnalysis(["Nvidia"]);
-        // Temporarily hardcoded to fetch Nvidia. Will complete later
+        return getVendorsAnalysis(["Nvidia", "Apple", "Crowdstrike"]);
+        // Temporarily hardcoded to fetch Nvidia, Apple, Crowdstrike. Will when org manager is implemented
       })
       .then(setData)
       .catch(console.error);
