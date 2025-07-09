@@ -4,8 +4,9 @@ import { useEffect } from "react";
 import vendexLogo from './assets/logo.png'
 import Home from "./pages/Home.jsx";
 import Subscriptions from "./pages/Subscriptions.jsx";
-import VendorAnalysis from "./pages/VendorAnalysis.jsx";
+import SupportedVendors from "./pages/SupportedVendors.jsx";
 import OrgManager from "./pages/OrgManager.jsx";
+import VendorInfo from "./pages/VendorInfo.jsx";
 
 function App() {
   const auth = useAuth();
@@ -32,8 +33,9 @@ function App() {
         <Routes>
           <Route path="/" element={<Home onSignOut={signOutRedirect} />} />
           <Route path="/subscriptions" element={<Subscriptions />} />
-          <Route path="/vendor-analysis" element={<VendorAnalysis />} />
+          <Route path="/supported-vendors" element={<SupportedVendors />} />
           <Route path="/org-manager" element={<OrgManager />} />
+          <Route path="/vendor/:vendor_name" element={<VendorInfo />} />
         </Routes>
       </div>
     );

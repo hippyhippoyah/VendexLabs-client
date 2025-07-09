@@ -22,8 +22,8 @@ function Subscriptions() {
     })
   }, []);
 
-  const filteredVendors = vendors.filter(vendor =>
-    vendor.toLowerCase().includes(inputValue.toLowerCase())
+  const filteredVendors = vendors.filter(vendorObj =>
+    vendorObj.vendor.toLowerCase().includes(inputValue.toLowerCase())
   );
 
   const handleAddSubscription = () => {
@@ -40,8 +40,8 @@ function Subscriptions() {
     setShowDropdown(false);
   };
 
-  const handleSelectVendor = (vendor) => {
-    setInputValue(vendor);
+  const handleSelectVendor = (vendorName) => {
+    setInputValue(vendorName);
     setShowDropdown(false);
   };
 
@@ -68,13 +68,14 @@ function Subscriptions() {
               {showDropdown && filteredVendors.length > 0 && (
                 <div>
                   <ul className="vendor-dropdown">
-                    {filteredVendors.map((vendor, idx) => (
+                    {filteredVendors.map((vendorObj, idx) => (
                       <li
                         key={idx}
                         className="vendor-dropdown-item"
-                        onMouseDown={() => handleSelectVendor(vendor)}
+                        onMouseDown={() => handleSelectVendor(vendorObj.vendor)}
                       >
-                        {vendor}
+                        <img src={vendorObj.logo} alt={vendorObj.vendor} style={{ width: 20, height: 20, marginRight: 8, verticalAlign: 'middle' }} />
+                        {vendorObj.vendor}
                       </li>
                     ))}
                   </ul>

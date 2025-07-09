@@ -17,8 +17,8 @@ const icon = {
   rating: "⭐",
 };
 
-const VendorAnalysisCard = ({ vendorData }) => {
-  if (!vendorData) return null;
+const VendorAnalysisCard = ({ data }) => {
+  if (!data) return null;
 
   const {
     vendor,
@@ -40,7 +40,7 @@ const VendorAnalysisCard = ({ vendorData }) => {
     breach_history,
     last_reviewed,
     website_url,
-  } = vendorData;
+  } = data;
 
   return (
     <div className="vendor-analysis-card">
