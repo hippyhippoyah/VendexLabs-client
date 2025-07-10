@@ -137,4 +137,19 @@ export const getOneVendor = async (vendor) => {
     }
     return await response.json();
 }
+
+export const getVendorSecurityInstances = async (vendor) => {
+    const accessToken = getIdToken();
+    const response = await fetch(`${API_BASE_URL}/vendor/${vendor}/security-instances`, {
+        method: "GET",
+        headers: {
+            "Authorization": `Bearer ${accessToken}`,
+            "Content-Type": "application/json"
+        }
+    });
+    if (!response.ok) {
+        throw new Error("Network response was not ok");
+    }
+    return await response.json();
+}
             
