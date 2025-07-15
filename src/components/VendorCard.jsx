@@ -1,22 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import './VendorCard.css';
-import { deleteSubscriptions } from "../utils/apis";
 
-const VendorCard = ({ vendor, dateAdded }) => {
-  const [hidden, setHidden] = useState(false);
-
-  const handleDelete = () => {
-    deleteSubscriptions([vendor]);
-    setHidden(true);
-  };
-
+const VendorCard = ({ vendor, dateAdded, onDelete }) => {
   return (
-    <div className={`vendor-card${hidden ? ' vendor-card--hidden' : ''}`} key={vendor}>
+    <div className="vendor-card">
       <span><strong>{vendor}</strong></span>
       <span><strong>Date Added:</strong> {dateAdded}</span>
       <button
         className="vendor-delete-btn"
-        onClick={handleDelete}
+        onClick={onDelete}
       >
         Delete
       </button>

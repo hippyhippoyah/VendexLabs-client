@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import vendexLogo from '../assets/logo.png'
 import '../App.css'
-import { getSubscriptions, createSubscription, getAllVendors } from "../utils/apis.js";
+import { getSubscriptions, createSubscription, getAllVendors, deleteSubscriptions } from "../utils/apis.js";
 import VendorCard from "../components/VendorCard.jsx";
 import './Subscriptions.css';
 import Navbar from '../components/Navbar.jsx';
@@ -40,6 +40,17 @@ function Subscriptions() {
     setShowDropdown(false);
   };
 
+  const handleDeleteSubscription = (vendorName) => {
+  deleteSubscriptions([vendorName]) // <- use your existing function
+    .then(() => {
+      setSubscriptions((prev) => prev.filter((s) => s.name !== vendorName));
+    })
+    .catch((error) => {
+      console.error('Error deleting subscription:', error);
+    });
+};
+
+  
   const handleSelectVendor = (vendorName) => {
     setInputValue(vendorName);
     setShowDropdown(false);
@@ -97,6 +108,7 @@ function Subscriptions() {
                 vendor={subscription.name}
                 dateAdded={subscription.date}
                 key={subscription.id || idx}
+                onDelete={() => handleDeleteSubscription(subscription.name)}
               />
             ))}
           </div>
