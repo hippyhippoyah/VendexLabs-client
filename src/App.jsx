@@ -2,11 +2,14 @@ import { useAuth } from "react-oidc-context";
 import { Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 import vendexLogo from './assets/logo.png'
+import Sidebar from "./components/Sidebar.jsx";
+import { AccountProvider } from "./contexts/AccountContext.jsx";
 import Home from "./pages/Home.jsx";
 import Subscriptions from "./pages/Subscriptions.jsx";
 import SupportedVendors from "./pages/SupportedVendors.jsx";
 import OrgManager from "./pages/OrgManager.jsx";
 import VendorInfo from "./pages/VendorInfo.jsx";
+import VendorListsManagement from "./pages/VendorListsManagement.jsx";
 
 function App() {
   const auth = useAuth();
@@ -29,20 +32,26 @@ function App() {
 
   if (auth.isAuthenticated) {
     return (
-      <div>
-        <Routes>
-          <Route path="/" element={<Home onSignOut={signOutRedirect} />} />
-          <Route path="/subscriptions" element={<Subscriptions />} />
-          <Route path="/supported-vendors" element={<SupportedVendors />} />
-          <Route path="/org-manager" element={<OrgManager />} />
-          <Route path="/vendor/:vendor_name" element={<VendorInfo />} />
-        </Routes>
-      </div>
+      <AccountProvider>
+        <div className="app-layout">
+          <Sidebar />
+          <main className="main-content">
+            <Routes>
+              <Route path="/" element={<Home onSignOut={signOutRedirect} />} />
+              <Route path="/subscriptions" element={<Subscriptions />} />
+              <Route path="/supported-vendors" element={<SupportedVendors />} />
+              <Route path="/org-manager" element={<OrgManager />} />
+              <Route path="/vendor-lists" element={<VendorListsManagement />} />
+              <Route path="/vendor/:vendor_name" element={<VendorInfo />} />
+            </Routes>
+          </main>
+        </div>
+      </AccountProvider>
     );
   }
 
   return (
-    <div>
+    <div className="login-container">
       <img src={vendexLogo} className="logo" alt="Vlogo" />
       <h1>VendexLabs</h1>
       <button onClick={() => auth.signinRedirect()}>Sign in</button>
