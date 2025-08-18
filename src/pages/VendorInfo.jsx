@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getOneVendor } from '../utils/apis';
 import './VendorInfo.css';
@@ -38,6 +38,19 @@ const VendorInfo = () => {
       breach_history,
       last_reviewed,
       website_url,
+      company_description,
+      business_type,
+      founded_year,
+      employee_count,
+      industry,
+      primary_product,
+      customer_count_estimate,
+      company_type,
+      total_funding,
+      funding_round,
+      has_enterprise_customers,
+      popularity_index,
+      revenue_estimate
     } = data;
 
     return (
@@ -49,6 +62,14 @@ const VendorInfo = () => {
             ✏️ Edit
           </button>
         </div>
+
+        {/* Company Description */}
+        {company_description && (
+          <div className="company-description-section">
+            <h3 className="vendor-subsection-title">About {vendor}</h3>
+            <p className="company-description">{company_description}</p>
+          </div>
+        )}
 
         {/* Main Company Info */}
         <div className="company-info-grid">
@@ -67,8 +88,14 @@ const VendorInfo = () => {
               </div>
               <div className="vendor-info-row">
                 <span className="vendor-info-label">Industry</span>
-                <span className="vendor-info-value">{bus_type && bus_type.join(", ")}</span>
+                <span className="vendor-info-value">{industry || (bus_type && bus_type.join(", ")) || 'Not specified'}</span>
               </div>
+              {primary_product && (
+                <div className="vendor-info-row">
+                  <span className="vendor-info-label">Primary Product</span>
+                  <span className="vendor-info-value">{primary_product}</span>
+                </div>
+              )}
               <div className="vendor-info-row">
                 <span className="vendor-info-label">Overall security rating</span>
                 <div className="vendor-rating-container">
@@ -78,12 +105,64 @@ const VendorInfo = () => {
               </div>
               <div className="vendor-info-row">
                 <span className="vendor-info-label">Employees</span>
-                <span className="vendor-info-value">-</span>
+                <span className="vendor-info-value">
+                  {employee_count ? employee_count.toLocaleString() : '-'}
+                </span>
+              </div>
+              <div className="vendor-info-row">
+                <span className="vendor-info-label">Founded</span>
+                <span className="vendor-info-value">
+                  {founded_year || '-'}
+                  {founded_year && ` (${new Date().getFullYear() - founded_year} years ago)`}
+                </span>
+              </div>
+              <div className="vendor-info-row">
+                <span className="vendor-info-label">Company Type</span>
+                <span className="vendor-info-value">{company_type || 'Not specified'}</span>
+              </div>
+              <div className="vendor-info-row">
+                <span className="vendor-info-label">Business Model</span>
+                <span className="vendor-info-value">{business_type || 'Not specified'}</span>
               </div>
               <div className="vendor-info-row">
                 <span className="vendor-info-label">Headquarters</span>
                 <span className="vendor-info-value vendor-location">🌍 {headquarters_location}</span>
               </div>
+              {revenue_estimate && parseFloat(revenue_estimate) > 0 && (
+                <div className="vendor-info-row">
+                  <span className="vendor-info-label">Est. Revenue</span>
+                  <span className="vendor-info-value">
+                    ${(parseFloat(revenue_estimate) / 1000000000).toFixed(1)}B
+                  </span>
+                </div>
+              )}
+              {customer_count_estimate && customer_count_estimate > 0 && (
+                <div className="vendor-info-row">
+                  <span className="vendor-info-label">Est. Customers</span>
+                  <span className="vendor-info-value">
+                    {customer_count_estimate >= 1000000 
+                      ? `${(customer_count_estimate / 1000000).toFixed(1)}M`
+                      : customer_count_estimate >= 1000 
+                        ? `${(customer_count_estimate / 1000).toFixed(1)}K`
+                        : customer_count_estimate.toLocaleString()
+                    }
+                  </span>
+                </div>
+              )}
+              {popularity_index && (
+                <div className="vendor-info-row">
+                  <span className="vendor-info-label">Popularity Score</span>
+                  <span className="vendor-info-value">{popularity_index}/100</span>
+                </div>
+              )}
+              {has_enterprise_customers !== undefined && (
+                <div className="vendor-info-row">
+                  <span className="vendor-info-label">Enterprise Customers</span>
+                  <span className="vendor-info-value">
+                    {has_enterprise_customers ? '✓ Yes' : '✗ No'}
+                  </span>
+                </div>
+              )}
               <div className="vendor-info-row">
                 <span className="vendor-info-label">Notes</span>
                 <span className="vendor-info-value">-</span>
@@ -98,6 +177,29 @@ const VendorInfo = () => {
             </div>
           </div>
         </div>
+
+        {/* Funding Information */}
+        {(total_funding && parseFloat(total_funding) > 0) || funding_round ? (
+          <div className="funding-section">
+            <h3 className="vendor-subsection-title">Funding Information</h3>
+            <div className="funding-info-grid">
+              {total_funding && parseFloat(total_funding) > 0 && (
+                <div className="funding-info-item">
+                  <span className="funding-label">Total Funding</span>
+                  <span className="funding-value">
+                    ${(parseFloat(total_funding) / 1000000).toFixed(1)}M
+                  </span>
+                </div>
+              )}
+              {funding_round && (
+                <div className="funding-info-item">
+                  <span className="funding-label">Latest Round</span>
+                  <span className="funding-value">{funding_round}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : null}
 
         {/* Subsidiaries Section */}
         <div className="subsidiaries-section">

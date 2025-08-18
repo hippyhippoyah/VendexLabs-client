@@ -1,14 +1,17 @@
 import { useAuth } from "react-oidc-context";
-import { Routes, Route } from "react-router-dom";
-import { useEffect } from "react";
-import vendexLogo from './assets/logo.png'
+import { Route, Routes } from "react-router-dom";
+import vendexLogo from './assets/logo.png';
 import Sidebar from "./components/Sidebar.jsx";
 import { AccountProvider } from "./contexts/AccountContext.jsx";
 import Home from "./pages/Home.jsx";
+import OrgManager from "./pages/OrgManager.jsx";
 import Subscriptions from "./pages/Subscriptions.jsx";
 import SupportedVendors from "./pages/SupportedVendors.jsx";
-import OrgManager from "./pages/OrgManager.jsx";
 import VendorInfo from "./pages/VendorInfo.jsx";
+import VendorBusinessMaturity from "./pages/VendorInfoPages/VendorBusinessMaturity.jsx";
+import VendorGeneralCompliance from "./pages/VendorInfoPages/VendorGeneralCompliance.jsx";
+import VendorPrivacyControls from "./pages/VendorInfoPages/VendorPrivacyControls.jsx";
+import VendorSecurityInstances from "./pages/VendorInfoPages/VendorSecurityInstances.jsx";
 import VendorListsManagement from "./pages/VendorListsManagement.jsx";
 
 function App() {
@@ -43,6 +46,11 @@ function App() {
               <Route path="/org-manager" element={<OrgManager />} />
               <Route path="/vendor-lists" element={<VendorListsManagement />} />
               <Route path="/vendor/:vendor_name" element={<VendorInfo />} />
+              <Route path="/vendor/:vendor_name/general-compliance" element={<VendorGeneralCompliance />} />
+              <Route path="/vendor/:vendor_name/privacy-controls" element={<VendorPrivacyControls />} />
+              <Route path="/vendor/:vendor_name/business-maturity" element={<VendorBusinessMaturity />} />
+              <Route path="/vendor/:vendor_name/security-instances" element={<VendorSecurityInstances />} />
+              <Route path="/vendor/:vendor_name/assessment-tracking" element={<div style={{padding: '24px'}}>Assessment Tracking - Coming Soon</div>} />
             </Routes>
           </main>
         </div>
