@@ -1,10 +1,8 @@
-import { useEffect, useState } from 'react'
-import vendexLogo from '../assets/logo.png'
-import '../App.css'
-import { getSubscriptions, createSubscription, getAllVendors, deleteSubscriptions } from "../utils/apis.js";
+import { useEffect, useState } from 'react';
+import '../App.css';
 import VendorCard from "../components/VendorCard.jsx";
+import { createSubscription, deleteSubscriptions, getAllVendors, getSubscriptions } from "../utils/apis.js";
 import './Subscriptions.css';
-import Navbar from '../components/Navbar.jsx';
 
 
 function Subscriptions() {
@@ -58,7 +56,6 @@ function Subscriptions() {
 
   return (
     <>
-      <Navbar />
       <div className="subscriptions-page-container">
         <div className="subscriptions-left">
           <h2>VendexLabs Subscription Manager</h2>
