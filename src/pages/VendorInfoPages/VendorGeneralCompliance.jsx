@@ -1,29 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { getOneVendor } from '../../utils/apis';
+import React from 'react';
+import { useVendor } from '../../contexts/VendorContext';
 
 const VendorGeneralCompliance = () => {
-  const { vendor_name } = useParams();
-  const [vendorData, setVendorData] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setLoading(true);
-    getOneVendor(vendor_name)
-      .then(data => {
-        setVendorData(data);
-        setLoading(false);
-      })
-      .catch(error => {
-        console.error('Error fetching vendor data:', error);
-        setLoading(false);
-      });
-  }, [vendor_name]);
+  const { vendorData, loading, error } = useVendor();
 
   if (loading) {
     return (
       <div style={{ padding: '24px', textAlign: 'center' }}>
         <p>Loading compliance information...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: '24px', textAlign: 'center' }}>
+        <p>Error loading compliance data: {error.message}</p>
       </div>
     );
   }

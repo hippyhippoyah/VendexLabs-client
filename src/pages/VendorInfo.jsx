@@ -1,19 +1,9 @@
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { getOneVendor } from '../utils/apis';
+import React from 'react';
+import { useVendor } from '../contexts/VendorContext';
 import './VendorInfo.css';
 
 const VendorInfo = () => {
-  const { vendor_name } = useParams();
-  const [vendorData, setVendorData] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setLoading(true);
-    getOneVendor(vendor_name)
-      .then(data => setVendorData(data))
-      .finally(() => setLoading(false));
-  }, [vendor_name]);
+  const { vendorData, loading, error } = useVendor();
 
   const VendorAnalysisCard = ({ data }) => {
     if (!data) return null;
@@ -23,20 +13,8 @@ const VendorInfo = () => {
       logo,
       alias,
       bus_type,
-      data_collected,
-      legal_compliance,
-      published_subprocessors,
-      privacy_policy_url,
-      tos_url,
-      date,
       security_rating,
-      risk_score,
-      risk_categories,
-      compliance_certifications,
       headquarters_location,
-      contact_email,
-      breach_history,
-      last_reviewed,
       website_url,
       company_description,
       business_type,
@@ -253,6 +231,8 @@ const VendorInfo = () => {
     <div className="vendor-info-container">
       {loading ? (
         <p>Loading vendor info...</p>
+      ) : error ? (
+        <p>Error loading vendor info: {error.message}</p>
       ) : (
         <VendorAnalysisCard data={vendorData} />
       )}
