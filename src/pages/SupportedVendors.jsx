@@ -81,15 +81,14 @@ const SupportedVendors = () => {
       <div className="vendors-table-container">
         <div className="vendors-table">
           <div className="table-header">
-            <div className="table-cell header-cell">Logo</div>
             <div className="table-cell header-cell">Vendor</div>
             <div className="table-cell header-cell">Website</div>
             <div className="table-cell header-cell">Actions</div>
           </div>
-          
+
           {filteredVendors.map((vendor, idx) => (
             <div key={idx} className="table-row">
-              <div className="table-cell logo-cell">
+              <div className="table-cell vendor-logo-name-cell">
                 <div className="vendor-logo-container">
                   <img 
                     src={vendor.logo} 
@@ -104,20 +103,19 @@ const SupportedVendors = () => {
                     {vendor.vendor?.charAt(0)?.toUpperCase()}
                   </div>
                 </div>
-              </div>
-
-              <div
-                className="table-cell vendor-cell vendor-info-hover"
-                style={{ cursor: 'pointer', position: 'relative' }}
-                onClick={() => window.location.href = `/vendor/${encodeURIComponent(vendor.vendor)}`}
-                tabIndex={0}
-                role="button"
-                aria-label={`More information about ${vendor.vendor}`}
-              >
-                {vendor.vendor}
-                <span className="vendor-info-arrow" style={{ display: 'none', marginLeft: 12, color: '#2563eb', fontWeight: 500, alignItems: 'center', gap: 4 }}>
-                  <span style={{ fontSize: '1rem', verticalAlign: 'middle' }}>→</span> More Information
-                </span>
+                <div
+                  className="vendor-cell vendor-info-hover"
+                  style={{ cursor: 'pointer', position: 'relative', marginLeft: 16 }}
+                  onClick={() => window.location.href = `/vendor/${encodeURIComponent(vendor.vendor)}`}
+                  tabIndex={0}
+                  role="button"
+                  aria-label={`More information about ${vendor.vendor}`}
+                >
+                  {vendor.vendor}
+                  <span className="vendor-info-arrow" style={{ display: 'none', marginLeft: 12, color: '#2563eb', fontWeight: 500, alignItems: 'center', gap: 4 }}>
+                    <span style={{ fontSize: '1rem', verticalAlign: 'middle' }}>→</span> More Information
+                  </span>
+                </div>
               </div>
 
               <div className="table-cell website-cell">

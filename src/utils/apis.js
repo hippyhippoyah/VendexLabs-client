@@ -1,8 +1,8 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL
 
 const getIdToken = () => {
-    const sessionStoragKeys = Object.keys(sessionStorage);
-    const oidcKey = sessionStoragKeys.find(key => key.startsWith("oidc.user:https://cognito-idp."));
+    const sessionStorageKeys = Object.keys(sessionStorage);
+    const oidcKey = sessionStorageKeys.find(key => key.startsWith("oidc.user:https://cognito-idp."));
     const oidcContext = JSON.parse(sessionStorage.getItem(oidcKey) || "{}");
     const idToken = oidcContext?.id_token;
     return idToken;
@@ -38,7 +38,7 @@ export const dummyApi = async () => {
 
 export const getIndividualSubscriptions = async () => {
     const accessToken = getIdToken();
-    const response = await fetch(`${API_BASE_URL}/subscriptions`, {
+    const response = await fetch(`${API_BASE_URL}/individual-subscriptions`, {
         method: "GET",
         headers: {
             "Authorization": `Bearer ${accessToken}`,
@@ -55,7 +55,7 @@ export const getIndividualSubscriptions = async () => {
 
 export const deleteIndividualSubscriptions = async (vendors) => {
     const accessToken = getIdToken();
-    const response = await fetch(`${API_BASE_URL}/subscriptions`, {
+    const response = await fetch(`${API_BASE_URL}/individual-subscriptions`, {
         method: "DELETE",
         headers: {
             "Authorization": `Bearer ${accessToken}`,
@@ -72,7 +72,7 @@ export const deleteIndividualSubscriptions = async (vendors) => {
 }
 export const createIndividualSubscription = async (vendors) => {
     const accessToken = getIdToken();
-    const response = await fetch(`${API_BASE_URL}/subscriptions`, {
+    const response = await fetch(`${API_BASE_URL}/individual-subscriptions`, {
         method: "POST",
         headers: {
             "Authorization": `Bearer ${accessToken}`,
@@ -265,23 +265,6 @@ export const deleteUserFromAccount = async (accountId, users) => {
     return await response.json();
 }
 
-// Vendor Info (Additional)
-export const createVendorInfo = async (vendors, updateAllFields = false) => {
-    const accessToken = getIdToken();
-    const response = await fetch(`${API_BASE_URL}/vendors`, {
-        method: "POST",
-        headers: {
-            "Authorization": `Bearer ${accessToken}`,
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ vendors, updateAllFields })
-    });
-    if (!response.ok) {
-        throw new Error("Network response was not ok");
-    }
-    return await response.json();
-}
-
 // Vendor List Manager
 export const getAllVendorLists = async (accountId) => {
     const accessToken = getIdToken();
@@ -328,7 +311,7 @@ export const deleteVendorList = async (accountId, vendorList) => {
     return await response.json();
 }
 
-export const updateVendorList = async (accountId, vendorList, vendors, action = "add") => {
+export const updateVendorList = async (accountId, vendorList, vendors) => {
     const accessToken = getIdToken();
     const response = await fetch(`${API_BASE_URL}/vendor-lists?account-id=${encodeURIComponent(accountId)}&vendor-list=${encodeURIComponent(vendorList)}`, {
         method: "PUT",

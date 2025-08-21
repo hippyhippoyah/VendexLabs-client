@@ -107,16 +107,17 @@
   width: 100%;
 }
 
+
 .table-header {
   display: grid;
-  grid-template-columns: 100px 2fr 2fr 180px;
+  grid-template-columns: 2.5fr 2fr 180px;
   background: #f8fafc;
   border-bottom: 2px solid #e2e8f0;
 }
 
 .table-row {
   display: grid;
-  grid-template-columns: 100px 2fr 2fr 180px;
+  grid-template-columns: 2.5fr 2fr 180px;
   border-bottom: 1px solid #f1f5f9;
   transition: all 0.2s ease;
 }
@@ -146,8 +147,11 @@
   padding: 16px;
 }
 
-.logo-cell {
-  justify-content: center;
+
+.vendor-logo-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 18px;
 }
 
 .vendor-logo-container {

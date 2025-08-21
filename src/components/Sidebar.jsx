@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { Link, useLocation} from 'react-router-dom';
 import vendexLogo from '../assets/logo.png';
 import { getAllAccounts } from '../utils/apis';
 import { useAccount } from '../contexts/AccountContext';
@@ -7,7 +7,6 @@ import './Sidebar.css';
 
 const Sidebar = () => {
   const location = useLocation();
-  const params = useParams();
   const { selectedAccount, setSelectedAccount } = useAccount();
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,14 +37,32 @@ const Sidebar = () => {
       try {
         setLoading(true);
         const response = await getAllAccounts();
-        // Response structure: {"accounts": [{"id": 11, "name": "testingChad", "active": true}]}
         const accountsData = response.accounts || [];
         setAccounts(accountsData);
-        
-        // If only one account, select it automatically
-        if (accountsData.length === 1) {
-          const account = accountsData[0];
-          setSelectedAccount(account);
+        // Try to restore account from localStorage
+        const storedAccount = localStorage.getItem('selectedAccount');
+        if (storedAccount) {
+          const parsedAccount = JSON.parse(storedAccount);
+          // If org, make sure it exists in accountsData
+          if (parsedAccount.id === 'individual') {
+            setSelectedAccount(parsedAccount);
+          } else {
+            const found = accountsData.find(acc => String(acc.id) === String(parsedAccount.id));
+            if (found) {
+              setSelectedAccount(found);
+            } else if (accountsData.length > 0) {
+              setSelectedAccount(accountsData[0]);
+            } else {
+              setSelectedAccount({ id: 'individual', name: 'Individual' });
+            }
+          }
+        } else {
+          // If no account is selected, default to first account (not 'individual')
+          if (accountsData.length > 0) {
+            setSelectedAccount(accountsData[0]);
+          } else {
+            setSelectedAccount({ id: 'individual', name: 'Individual' });
+          }
         }
       } catch (error) {
         console.error('Error fetching accounts:', error);
@@ -54,14 +71,20 @@ const Sidebar = () => {
         setLoading(false);
       }
     };
-
     fetchAccounts();
-  }, [setSelectedAccount]);
+  }, []);
 
   const handleAccountChange = (event) => {
-    const accountId = parseInt(event.target.value);
-    const account = accounts.find(acc => acc.id === accountId);
-    setSelectedAccount(account);
+    const value = event.target.value;
+    let newAccount;
+    if (value === 'individual') {
+      newAccount = { id: 'individual', name: 'Individual' };
+    } else {
+      const account = accounts.find(acc => String(acc.id) === value);
+      newAccount = account ? account : { id: 'individual', name: 'Individual' };
+    }
+    setSelectedAccount(newAccount);
+    localStorage.setItem('selectedAccount', JSON.stringify(newAccount));
   };
 
   return (
@@ -70,7 +93,7 @@ const Sidebar = () => {
         <img src={vendexLogo} alt="VendexLabs" className="sidebar-logo" />
         <h2 className="sidebar-title">VendexLabs</h2>
       </div>
-      
+
       {/* Account Selection */}
       <div className="account-selection">
         <label htmlFor="account-select" className="account-label">
@@ -80,27 +103,26 @@ const Sidebar = () => {
           <div className="account-loading">Loading accounts...</div>
         ) : error ? (
           <div className="account-error">{error}</div>
-        ) : accounts.length > 0 ? (
+        ) : (
           <select 
             id="account-select"
             className="account-select"
-            value={selectedAccount?.id || ''}
+            value={String(selectedAccount?.id) || ''}
             onChange={handleAccountChange}
           >
+            <option value="individual">Individual</option>
             {accounts.map((account) => (
               <option 
                 key={account.id} 
-                value={account.id}
+                value={String(account.id)}
               >
                 {account.name}
               </option>
             ))}
           </select>
-        ) : (
-          <div className="account-none">No accounts found</div>
         )}
       </div>
-      
+
       <nav className="sidebar-nav">
         {isVendorPage ? (
           <>
@@ -113,7 +135,6 @@ const Sidebar = () => {
                 {vendorName ? vendorName.charAt(0).toUpperCase() + vendorName.slice(1) : 'Vendor'}
               </h3>
             </div>
-            
             {/* Vendor Navigation */}
             <ul className="nav-list vendor-nav-list">
               <li className="nav-item">
@@ -140,17 +161,35 @@ const Sidebar = () => {
           </>
         ) : (
           <ul className="nav-list">
-            {navItems.map((item) => (
-              <li key={item.path} className="nav-item">
+            {/* Individual Subscriptions NavItem (only show when Individual is selected) */}
+            {selectedAccount?.id === 'individual' && (
+              <li className="nav-item">
                 <Link 
-                  to={item.path} 
-                  className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
+                  to="/individual-subscriptions" 
+                  className={`nav-link ${location.pathname === '/individual-subscriptions' ? 'active' : ''}`}
                 >
-                  <span className="nav-icon">{item.icon}</span>
-                  <span className="nav-label">{item.label}</span>
+                  <span className="nav-icon">📝</span>
+                  <span className="nav-label">Individual Subscriptions</span>
                 </Link>
               </li>
-            ))}
+            )}
+            {/* Other nav items, hide Account Manager and Vendor Lists Management when Individual is selected */}
+            {navItems.map((item) => {
+              if (selectedAccount?.id === 'individual' && (item.path === '/org-manager' || item.path === '/vendor-lists')) {
+                return null;
+              }
+              return (
+                <li key={item.path} className="nav-item">
+                  <Link 
+                    to={item.path} 
+                    className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
+                  >
+                    <span className="nav-icon">{item.icon}</span>
+                    <span className="nav-label">{item.label}</span>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         )}
       </nav>

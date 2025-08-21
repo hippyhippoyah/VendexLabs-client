@@ -5,7 +5,6 @@ import Sidebar from "./components/Sidebar.jsx";
 import { AccountProvider } from "./contexts/AccountContext.jsx";
 import { VendorProvider } from "./contexts/VendorContext.jsx";
 import Home from "./pages/Home.jsx";
-import Subscriptions from "./pages/Subscriptions.jsx";
 import SupportedVendors from "./pages/SupportedVendors.jsx";
 import OrgManager from "./pages/OrgManager.jsx";
 import VendorInfo from "./pages/VendorInfo.jsx";
@@ -14,6 +13,8 @@ import VendorGeneralCompliance from "./pages/VendorInfoPages/VendorGeneralCompli
 import VendorPrivacyControls from "./pages/VendorInfoPages/VendorPrivacyControls.jsx";
 import VendorBusinessMaturity from "./pages/VendorInfoPages/VendorBusinessMaturity.jsx";
 import VendorSecurityInstances from "./pages/VendorInfoPages/VendorSecurityInstances.jsx";
+import IndividualSubscriptions from "./pages/IndividualSubscriptions.jsx";
+import './App.css';
 
 function App() {
   const auth = useAuth();
@@ -42,10 +43,10 @@ function App() {
           <main className="main-content">
             <Routes>
               <Route path="/" element={<Home onSignOut={signOutRedirect} />} />
-              <Route path="/subscriptions" element={<Subscriptions />} />
               <Route path="/supported-vendors" element={<SupportedVendors />} />
               <Route path="/org-manager" element={<OrgManager />} />
               <Route path="/vendor-lists" element={<VendorListsManagement />} />
+              <Route path="/individual-subscriptions" element={<IndividualSubscriptions />} />
               <Route path="/vendor/:vendor_name/*" element={
                 <VendorProvider>
                   <Routes>
