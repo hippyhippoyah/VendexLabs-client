@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { getAllVendors } from '../utils/apis';
+import { getAllVendors } from '../utils/apis.ts';
 import { Link } from 'react-router-dom';
 import './SupportedVendors.css';
 
+
+import { VendorOverview } from '../utils/responseTypes';
+
 const SupportedVendors = () => {
-  const [vendors, setVendors] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [vendors, setVendors] = useState<VendorOverview[] | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
   useEffect(() => {
     const fetchVendors = async () => {
@@ -26,7 +29,7 @@ const SupportedVendors = () => {
     fetchVendors();
   }, []);
 
-  const filteredVendors = vendors?.filter(vendor =>
+  const filteredVendors: VendorOverview[] = vendors?.filter(vendor =>
     vendor.vendor?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     vendor.website_url?.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
@@ -95,8 +98,10 @@ const SupportedVendors = () => {
                     alt={`${vendor.vendor} logo`}
                     className="vendor-logo"
                     onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'flex';
+                      const img = e.target as HTMLImageElement;
+                      img.style.display = 'none';
+                      const fallback = img.nextSibling as HTMLElement | null;
+                      if (fallback) fallback.style.display = 'flex';
                     }}
                   />
                   <div className="logo-fallback" style={{ display: 'none' }}>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useVendor } from '../../contexts/VendorContext';
+import { useVendor } from '../../contexts/VendorContext.tsx';
 
 const VendorBusinessMaturity = () => {
   const { vendorData, loading, error } = useVendor();

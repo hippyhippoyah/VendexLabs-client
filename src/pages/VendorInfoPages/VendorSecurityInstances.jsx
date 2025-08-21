@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getVendorSecurityInstances } from '../../utils/apis';
+import { getVendorSecurityInstances } from '../../utils/apis.ts';
 
 const VendorSecurityInstances = () => {
   const { vendor_name } = useParams();

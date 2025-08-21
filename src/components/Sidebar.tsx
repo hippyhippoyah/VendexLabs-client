@@ -1,16 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation} from 'react-router-dom';
+import React, { useState, useEffect, ChangeEvent } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import vendexLogo from '../assets/logo.png';
 import { getAllAccounts } from '../utils/apis';
-import { useAccount } from '../contexts/AccountContext';
+import { useAccount } from '../contexts/AccountContext.tsx';
 import './Sidebar.css';
 
-const Sidebar = () => {
+interface Account {
+  id: string | number;
+  name: string;
+}
+
+const Sidebar: React.FC = () => {
   const location = useLocation();
   const { selectedAccount, setSelectedAccount } = useAccount();
-  const [accounts, setAccounts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Check if we're on a vendor info page
   const isVendorPage = location.pathname.includes('/vendor/');
@@ -37,12 +42,12 @@ const Sidebar = () => {
       try {
         setLoading(true);
         const response = await getAllAccounts();
-        const accountsData = response.accounts || [];
+        const accountsData: Account[] = response.accounts || [];
         setAccounts(accountsData);
         // Try to restore account from localStorage
         const storedAccount = localStorage.getItem('selectedAccount');
         if (storedAccount) {
-          const parsedAccount = JSON.parse(storedAccount);
+          const parsedAccount: Account = JSON.parse(storedAccount);
           // If org, make sure it exists in accountsData
           if (parsedAccount.id === 'individual') {
             setSelectedAccount(parsedAccount);
@@ -74,9 +79,9 @@ const Sidebar = () => {
     fetchAccounts();
   }, []);
 
-  const handleAccountChange = (event) => {
+  const handleAccountChange = (event: ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
-    let newAccount;
+    let newAccount: Account;
     if (value === 'individual') {
       newAccount = { id: 'individual', name: 'Individual' };
     } else {

@@ -1,15 +1,17 @@
+
 import React, { useState, useEffect } from 'react';
 import { getAllVendors, getIndividualSubscriptions, createIndividualSubscription, deleteIndividualSubscriptions } from '../utils/apis';
+import { IndividualSubscriptionsResponse } from '../utils/responseTypes';
 import './VendorListsManagement.css';
 
 
 const IndividualSubscriptions = () => {
-  const [allVendors, setAllVendors] = useState([]);
-  const [subscriptions, setSubscriptions] = useState([]);
+  const [allVendors, setAllVendors] = useState<any[]>([]);
+  const [subscriptions, setSubscriptions] = useState<{ name: string }[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState('');
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editSelectedVendors, setEditSelectedVendors] = useState([]);
+  const [editSelectedVendors, setEditSelectedVendors] = useState<string[]>([]);
   const [vendorSearch, setVendorSearch] = useState('');
   const [customVendorInput, setCustomVendorInput] = useState('');
 
@@ -30,9 +32,9 @@ const IndividualSubscriptions = () => {
   const fetchSubscriptions = async () => {
     setLoading(true);
     try {
-      const res = await getIndividualSubscriptions();
-      setSubscriptions(res?.vendors.map(vendor => vendor.name) || []);
-    } catch{
+      const res: IndividualSubscriptionsResponse = await getIndividualSubscriptions();
+      setSubscriptions(res?.vendors || []);
+    } catch {
       setError('Failed to load subscriptions');
     } finally {
       setLoading(false);
@@ -89,7 +91,7 @@ const IndividualSubscriptions = () => {
       {error && (
         <div className="error-banner">
           <p>{error}</p>
-          <button onClick={() => setError(null)} className="close-error">×</button>
+          <button onClick={() => setError('')} className="close-error">×</button>
         </div>
       )}
 
@@ -115,17 +117,17 @@ const IndividualSubscriptions = () => {
                   <div
                     className="table-cell vendor-cell vendor-info-hover"
                     style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', position: 'relative' }}
-                    onClick={() => window.location.href = `/vendor/${encodeURIComponent(vendor)}`}
+                    onClick={() => window.location.href = `/vendor/${encodeURIComponent(vendor.name)}`}
                     tabIndex={0}
                     role="button"
-                    aria-label={`More information about ${vendor}`}
+                    aria-label={`More information about ${vendor.name}`}
                     onKeyDown={e => {
                       if (e.key === 'Enter' || e.key === ' ') {
-                        window.location.href = `/vendor/${encodeURIComponent(vendor)}`;
+                        window.location.href = `/vendor/${encodeURIComponent(vendor.name)}`;
                       }
                     }}
                   >
-                    {vendor}
+                    {vendor.name}
                     <span className="vendor-info-arrow" style={{ display: 'none', marginLeft: 12, color: '#2563eb', fontWeight: 500, alignItems: 'center', gap: 4 }}>
                       <span style={{ fontSize: '1rem', verticalAlign: 'middle' }}>→</span> More Information
                     </span>

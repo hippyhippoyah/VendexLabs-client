@@ -1,6 +1,6 @@
 import vendexLogo from '../assets/logo.png';
-import { useAccount } from '../contexts/AccountContext';
-import { getEmailClaim } from '../utils/apis';
+import { useAccount } from '../contexts/AccountContext.tsx';
+import { getEmailClaim } from '../utils/apis.ts';
 import './Home.css';
 
 function Home({ onSignOut }) {

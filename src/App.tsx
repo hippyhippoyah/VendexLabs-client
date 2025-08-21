@@ -1,19 +1,19 @@
 import { useAuth } from "react-oidc-context";
 import { Routes, Route } from "react-router-dom";
-import vendexLogo from './assets/logo.png'
-import Sidebar from "./components/Sidebar.jsx";
-import { AccountProvider } from "./contexts/AccountContext.jsx";
-import { VendorProvider } from "./contexts/VendorContext.jsx";
-import Home from "./pages/Home.jsx";
-import SupportedVendors from "./pages/SupportedVendors.jsx";
-import OrgManager from "./pages/OrgManager.jsx";
-import VendorInfo from "./pages/VendorInfo.jsx";
-import VendorListsManagement from "./pages/VendorListsManagement.jsx";
-import VendorGeneralCompliance from "./pages/VendorInfoPages/VendorGeneralCompliance.jsx";
-import VendorPrivacyControls from "./pages/VendorInfoPages/VendorPrivacyControls.jsx";
-import VendorBusinessMaturity from "./pages/VendorInfoPages/VendorBusinessMaturity.jsx";
+import vendexLogo from './assets/logo.png';
+import Sidebar from "./components/Sidebar.tsx";
+import { AccountProvider } from "./contexts/AccountContext.tsx";
+import { VendorProvider } from "./contexts/VendorContext.tsx";
+import Home from "./pages/Home.tsx";
+import SupportedVendors from "./pages/SupportedVendors.tsx";
+import OrgManager from "./pages/OrgManager.tsx";
+import VendorInfo from "./pages/VendorInfo.tsx";
+import VendorListsManagement from "./pages/VendorListsManagement.tsx";
+import VendorGeneralCompliance from "./pages/VendorInfoPages/VendorGeneralCompliance.tsx";
+import VendorPrivacyControls from "./pages/VendorInfoPages/VendorPrivacyControls.tsx";
+import VendorBusinessMaturity from "./pages/VendorInfoPages/VendorBusinessMaturity.tsx";
 import VendorSecurityInstances from "./pages/VendorInfoPages/VendorSecurityInstances.jsx";
-import IndividualSubscriptions from "./pages/IndividualSubscriptions.jsx";
+import IndividualSubscriptions from "./pages/IndividualSubscriptions.tsx";
 import './App.css';
 
 function App() {

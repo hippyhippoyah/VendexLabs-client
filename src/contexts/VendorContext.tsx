@@ -1,8 +1,16 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useParams } from 'react-router-dom';
-import { getOneVendor } from '../utils/apis';
+import { getOneVendor } from '../utils/apis.ts';
 
-const VendorContext = createContext();
+interface VendorContextType {
+  vendorData: any;
+  loading: boolean;
+  error: any;
+  vendor_name?: string;
+  refetch: () => void;
+}
+
+const VendorContext = createContext<VendorContextType | undefined>(undefined);
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const useVendor = () => {
@@ -13,11 +21,15 @@ export const useVendor = () => {
   return context;
 };
 
-export const VendorProvider = ({ children }) => {
-  const { vendor_name } = useParams();
-  const [vendorData, setVendorData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+interface VendorProviderProps {
+  children: ReactNode;
+}
+
+export const VendorProvider: React.FC<VendorProviderProps> = ({ children }) => {
+  const { vendor_name } = useParams<{ vendor_name?: string }>();
+  const [vendorData, setVendorData] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<any>(null);
 
   useEffect(() => {
     if (!vendor_name) return;

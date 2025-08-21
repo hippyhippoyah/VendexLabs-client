@@ -1,5 +1,5 @@
 import React from 'react';
-import { useVendor } from '../contexts/VendorContext';
+import { useVendor } from '../contexts/VendorContext.tsx';
 import './VendorInfo.css';
 
 const VendorInfo = () => {

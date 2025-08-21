@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAccount } from '../contexts/AccountContext';
+import { useAccount } from '../contexts/AccountContext.tsx';
 import {
   getAllVendorLists,
   createVendorList,
@@ -10,24 +10,26 @@ import {
   getAccountSubscriptions,
   createAccountSubscription,
   deleteAccountSubscription
-} from '../utils/apis';
+} from '../utils/apis.ts';
 import './VendorListsManagement.css';
+import { VendorOverview, AccountSubscriptionsResponse, VendorListUsersResponse, VendorList } from '../utils/responseTypes.ts';
+
 
 const VendorListsManagement = () => {
   const { selectedAccount } = useAccount();
-  const [vendorLists, setVendorLists] = useState([]);
-  const [allVendors, setAllVendors] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newListName, setNewListName] = useState('');
-  const [selectedListName, setSelectedListName] = useState('');
-  const [selectedList, setSelectedList] = useState(null);
-  const [subscribers, setSubscribers] = useState([]);
-  const [subLoading, setSubLoading] = useState(false);
+  const [vendorLists, setVendorLists] = useState<VendorList[]>([]);
+  const [allVendors, setAllVendors] = useState<VendorOverview[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
+  const [newListName, setNewListName] = useState<string>('');
+  const [selectedListName, setSelectedListName] = useState<string>('');
+  const [selectedList, setSelectedList] = useState<VendorList | null>(null);
+  const [subscribers, setSubscribers] = useState<AccountSubscriptionsResponse['subscribers']>([]);
+  const [subLoading, setSubLoading] = useState<boolean>(false);
   // Edit Subscribers Modal State
-  const [showEditSubscribersModal, setShowEditSubscribersModal] = useState(false);
-  const [editSubscriberInput, setEditSubscriberInput] = useState('');
+  const [showEditSubscribersModal, setShowEditSubscribersModal] = useState<boolean>(false);
+  const [editSubscriberInput, setEditSubscriberInput] = useState<string>('');
 
   useEffect(() => {
     if (selectedAccount?.id) {
@@ -50,10 +52,10 @@ const VendorListsManagement = () => {
   const fetchVendorLists = async () => {
     try {
       setLoading(true);
-      const lists = await getAllVendorLists(selectedAccount.id);
-      setVendorLists(lists?.vendor_lists || []);
+      const lists: VendorListUsersResponse = await getAllVendorLists(selectedAccount.id);
+      setVendorLists(Array.isArray(lists?.vendor_lists) ? lists.vendor_lists : []);
       // Select first list by default
-      if (lists?.vendor_lists?.length > 0) {
+      if (Array.isArray(lists?.vendor_lists) && lists.vendor_lists.length > 0) {
         setSelectedListName(lists.vendor_lists[0].name);
       }
     } catch (err) {
@@ -66,21 +68,20 @@ const VendorListsManagement = () => {
 
   const fetchAllVendors = async () => {
     try {
-      const vendors = await getAllVendors();
+      const vendors: VendorOverview[] = await getAllVendors();
       setAllVendors(vendors);
     } catch (err) {
       console.error('Error fetching vendors:', err);
     }
   };
 
-  const fetchSubscribers = async (listName) => {
+  const fetchSubscribers = async (listName: string) => {
     if (!selectedAccount?.id || !listName) return;
     setSubLoading(true);
     try {
-      const res = await getAccountSubscriptions(selectedAccount.id, listName);
-      // API now returns array of objects: { email, verified }
+      const res: AccountSubscriptionsResponse = await getAccountSubscriptions(selectedAccount.id, listName);
       setSubscribers(res?.subscribers || []);
-    } catch{
+    } catch {
       setError('Failed to load subscribers');
     } finally {
       setSubLoading(false);
@@ -99,7 +100,7 @@ const VendorListsManagement = () => {
     }
   };
 
-  const handleDeleteList = async (listName) => {
+  const handleDeleteList = async (listName: string) => {
     if (!window.confirm(`Are you sure you want to delete "${listName}"?`)) return;
     try {
       await deleteVendorList(selectedAccount.id, listName);
@@ -110,10 +111,10 @@ const VendorListsManagement = () => {
   };
 
   // Edit Vendors Modal State
-  const [showEditVendorsModal, setShowEditVendorsModal] = useState(false);
-  const [editVendorSearch, setEditVendorSearch] = useState('');
-  const [editSelectedVendors, setEditSelectedVendors] = useState([]);
-  const [customVendorInput, setCustomVendorInput] = useState('');
+  const [showEditVendorsModal, setShowEditVendorsModal] = useState<boolean>(false);
+  const [editVendorSearch, setEditVendorSearch] = useState<string>('');
+  const [editSelectedVendors, setEditSelectedVendors] = useState<string[]>([]);
+  const [customVendorInput, setCustomVendorInput] = useState<string>('');
   // Add custom vendor to selection
   const handleAddCustomVendor = () => {
     const vendorName = customVendorInput.trim();
@@ -136,7 +137,7 @@ const VendorListsManagement = () => {
   );
 
   // Helper to get logo for a vendor name
-  const getVendorLogo = (vendorName) => {
+  const getVendorLogo = (vendorName: string) => {
     const vendorObj = allVendors.find(v => v.vendor === vendorName);
     return vendorObj?.logo || null;
   };
@@ -161,7 +162,7 @@ const VendorListsManagement = () => {
   };
 
   // Add subscriber (modal)
-  const handleAddSubscriber = async (email) => {
+  const handleAddSubscriber = async (email: string) => {
     if (!email.trim() || !selectedList) return;
     if (subscribers.some(sub => sub.email === email)) {
       setEditSubscriberInput('');
@@ -180,7 +181,7 @@ const VendorListsManagement = () => {
   };
 
   // Remove subscriber (modal)
-  const handleRemoveSubscriber = async (email) => {
+  const handleRemoveSubscriber = async (email: string) => {
     if (!selectedList) return;
     setSubLoading(true);
     try {
@@ -264,7 +265,7 @@ const VendorListsManagement = () => {
                     Edit Vendors
                   </button>
                 </div>
-                {selectedList?.vendors?.length > 0 ? (
+                {(selectedList && Array.isArray(selectedList.vendors) && selectedList.vendors.length > 0) ? (
                   selectedList.vendors.map((vendor, idx) => (
                     <div key={idx} className="table-row">
                       <div
@@ -281,7 +282,7 @@ const VendorListsManagement = () => {
                         }}
                       >
                         {getVendorLogo(vendor) && (
-                          <img src={getVendorLogo(vendor)} alt={vendor + ' logo'} style={{ width: 28, height: 28, objectFit: 'contain', marginRight: 10, borderRadius: 4, background: '#fff' }} />
+                          <img src={getVendorLogo(vendor) ?? undefined} alt={(vendor ?? '') + ' logo'} style={{ width: 28, height: 28, objectFit: 'contain', marginRight: 10, borderRadius: 4, background: '#fff' }} />
                         )}
                         {vendor}
                         <span className="vendor-info-arrow" style={{ display: 'none', marginLeft: 12, color: '#2563eb', fontWeight: 500, alignItems: 'center', gap: 4 }}>
