@@ -1,8 +1,7 @@
-import React from 'react';
-import vendexLogo from '../assets/logo.png'
-import './Home.css'
-import { getEmailClaim } from '../utils/apis'
-import { useAccount } from '../contexts/AccountContext'
+import vendexLogo from '../assets/logo.png';
+import { useAccount } from '../contexts/AccountContext';
+import { getEmailClaim } from '../utils/apis';
+import './Home.css';
 
 function Home({ onSignOut }) {
   const { selectedAccount } = useAccount();

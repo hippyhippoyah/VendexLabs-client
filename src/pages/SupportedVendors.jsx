@@ -105,16 +105,21 @@ const SupportedVendors = () => {
                   </div>
                 </div>
               </div>
-              
-              <div className="table-cell vendor-cell">
-                <Link 
-                  to={`/vendor/${encodeURIComponent(vendor.vendor)}`}
-                  className="vendor-link"
-                >
-                  {vendor.vendor}
-                </Link>
+
+              <div
+                className="table-cell vendor-cell vendor-info-hover"
+                style={{ cursor: 'pointer', position: 'relative' }}
+                onClick={() => window.location.href = `/vendor/${encodeURIComponent(vendor.vendor)}`}
+                tabIndex={0}
+                role="button"
+                aria-label={`More information about ${vendor.vendor}`}
+              >
+                {vendor.vendor}
+                <span className="vendor-info-arrow" style={{ display: 'none', marginLeft: 12, color: '#2563eb', fontWeight: 500, alignItems: 'center', gap: 4 }}>
+                  <span style={{ fontSize: '1rem', verticalAlign: 'middle' }}>→</span> More Information
+                </span>
               </div>
-              
+
               <div className="table-cell website-cell">
                 {vendor.website_url && (
                   <a 
@@ -127,7 +132,7 @@ const SupportedVendors = () => {
                   </a>
                 )}
               </div>
-              
+
               <div className="table-cell actions-cell">
                 <Link 
                   to={`/vendor/${encodeURIComponent(vendor.vendor)}`}

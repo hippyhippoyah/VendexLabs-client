@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import '../App.css';
 import VendorCard from "../components/VendorCard.jsx";
-import { createSubscription, deleteSubscriptions, getAllVendors, getSubscriptions } from "../utils/apis.js";
+import { createIndividualSubscription, deleteIndividualSubscriptions, getAllVendors, getIndividualSubscriptions } from "../utils/apis.js";
 import './Subscriptions.css';
 
 
@@ -12,7 +12,7 @@ function Subscriptions() {
   const [showDropdown, setShowDropdown] = useState(false)
 
   useEffect(() => {
-    getSubscriptions().then((response) => {
+    getIndividualSubscriptions().then((response) => {
       setSubscriptions(response.vendors);
     })
     getAllVendors().then((response) => {
@@ -27,7 +27,7 @@ function Subscriptions() {
   const handleAddSubscription = () => {
     const vendorToAdd = inputValue.trim();
     if (!vendorToAdd) return;
-    createSubscription([vendorToAdd]).then((response) => {
+    createIndividualSubscription([vendorToAdd]).then((response) => {
       setSubscriptions(prev => [...prev, { name: vendorToAdd, date: new Date().toLocaleDateString() }]);
     }
     ).catch((error) => {
@@ -39,7 +39,7 @@ function Subscriptions() {
   };
 
   const handleDeleteSubscription = (vendorName) => {
-  deleteSubscriptions([vendorName]) // <- use your existing function
+  deleteIndividualSubscriptions([vendorName]) // <- use your existing function
     .then(() => {
       setSubscriptions((prev) => prev.filter((s) => s.name !== vendorName));
     })

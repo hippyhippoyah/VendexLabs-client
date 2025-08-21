@@ -36,7 +36,7 @@ export const dummyApi = async () => {
     return await response.json();
 }
 
-export const getSubscriptions = async () => {
+export const getIndividualSubscriptions = async () => {
     const accessToken = getIdToken();
     const response = await fetch(`${API_BASE_URL}/subscriptions`, {
         method: "GET",
@@ -53,7 +53,7 @@ export const getSubscriptions = async () => {
     return await response.json();
 }
 
-export const deleteSubscriptions = async (vendors) => {
+export const deleteIndividualSubscriptions = async (vendors) => {
     const accessToken = getIdToken();
     const response = await fetch(`${API_BASE_URL}/subscriptions`, {
         method: "DELETE",
@@ -70,7 +70,7 @@ export const deleteSubscriptions = async (vendors) => {
 
     return await response.json();
 }
-export const createSubscription = async (vendors) => {
+export const createIndividualSubscription = async (vendors) => {
     const accessToken = getIdToken();
     const response = await fetch(`${API_BASE_URL}/subscriptions`, {
         method: "POST",
@@ -154,7 +154,7 @@ export const getVendorSecurityInstances = async (vendor) => {
 }
 
 // Subscription Manager (Accounts)
-export const getAccountSubscriptions = async (accountId, vendorList = "master list") => {
+export const getAccountSubscriptions = async (accountId, vendorList = "master-list") => {
     const accessToken = getIdToken();
     const response = await fetch(`${API_BASE_URL}/subscribers?account-id=${encodeURIComponent(accountId)}&vendor-list=${encodeURIComponent(vendorList)}`, {
         method: "GET",
@@ -162,6 +162,38 @@ export const getAccountSubscriptions = async (accountId, vendorList = "master li
             "Authorization": `Bearer ${accessToken}`,
             "Content-Type": "application/json"
         }
+    });
+    if (!response.ok) {
+        throw new Error("Network response was not ok");
+    }
+    return await response.json();
+}
+
+export const createAccountSubscription = async (accountId, vendorList, emails) => {
+    const accessToken = getIdToken();
+    const response = await fetch(`${API_BASE_URL}/subscribers?account-id=${encodeURIComponent(accountId)}&vendor-list=${encodeURIComponent(vendorList)}`, {
+        method: "POST",
+        headers: {
+            "Authorization": `Bearer ${accessToken}`,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ "subscriber-email": emails })
+    });
+    if (!response.ok) {
+        throw new Error("Network response was not ok");
+    }
+    return await response.json();
+}
+
+export const deleteAccountSubscription = async (accountId, vendorList, emails) => {
+    const accessToken = getIdToken();
+    const response = await fetch(`${API_BASE_URL}/subscribers?account-id=${encodeURIComponent(accountId)}&vendor-list=${encodeURIComponent(vendorList)}`, {
+        method: "DELETE",
+        headers: {
+            "Authorization": `Bearer ${accessToken}`,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ "subscriber-email": emails })
     });
     if (!response.ok) {
         throw new Error("Network response was not ok");
@@ -343,3 +375,4 @@ export const removeVendorsFromList = async (accountId, vendorList, vendors) => {
     }
     return await response.json();
 }
+
