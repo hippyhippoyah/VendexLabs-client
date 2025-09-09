@@ -133,8 +133,8 @@ const Sidebar: React.FC = () => {
           <>
             {/* Vendor Header */}
             <div className="vendor-nav-header">
-              <Link to="/supported-vendors" className="back-link">
-                ← Back to Vendors
+              <Link to="/vendor-lists" className="back-link">
+                ← Back to Vendor Lists
               </Link>
               <h3 className="vendor-nav-title">
                 {vendorName ? vendorName.charAt(0).toUpperCase() + vendorName.slice(1) : 'Vendor'}

@@ -1,6 +1,8 @@
 export type VendorList = {
+  id: string;
   name: string;
   vendors: string[];
+
 };
 export type VendorListUsersResponse = {
   users: {
@@ -79,4 +81,18 @@ export type VendorAnalysis = {
   has_enterprise_customers: boolean;
   popularity_index: number;
   revenue_estimate: string;
+};
+
+export type VendorAssessment = {
+  id: string;
+  sponsor_business_org: string;
+  sponsor_contact: string;
+  compliance_approval_status: string;
+  compliance_comment: string;
+  compliance_contact: string;
+  compliance_assessment_date: string;
+};
+
+export type VendorAssessmentsResponse = {
+  assessments: VendorAssessment[];
 };

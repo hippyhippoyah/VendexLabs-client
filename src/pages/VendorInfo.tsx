@@ -36,9 +36,6 @@ const VendorInfo = () => {
         {/* Company Profile Header */}
         <div className="company-profile-header">
           <h2 className="vendor-section-title">Company Profile</h2>
-          <button className="vendor-edit-button">
-            ✏️ Edit
-          </button>
         </div>
 
         {/* Company Description */}

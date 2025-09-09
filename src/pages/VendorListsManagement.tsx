@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAccount } from '../contexts/AccountContext.tsx';
+import { useVendorList } from '../contexts/VendorListContext';
 import {
   getAllVendorLists,
   createVendorList,
@@ -17,13 +18,13 @@ import { VendorOverview, AccountSubscriptionsResponse, VendorListUsersResponse, 
 
 const VendorListsManagement = () => {
   const { selectedAccount } = useAccount();
+  const { vendorListId, setVendorListId } = useVendorList();
   const [vendorLists, setVendorLists] = useState<VendorList[]>([]);
   const [allVendors, setAllVendors] = useState<VendorOverview[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
   const [newListName, setNewListName] = useState<string>('');
-  const [selectedListName, setSelectedListName] = useState<string>('');
   const [selectedList, setSelectedList] = useState<VendorList | null>(null);
   const [subscribers, setSubscribers] = useState<AccountSubscriptionsResponse['subscribers']>([]);
   const [subLoading, setSubLoading] = useState<boolean>(false);
@@ -39,15 +40,15 @@ const VendorListsManagement = () => {
   }, [selectedAccount]);
 
   useEffect(() => {
-    if (selectedListName && selectedAccount?.id) {
-      const list = vendorLists.find(l => l.name === selectedListName);
+    if (vendorListId && selectedAccount?.id) {
+      const list = vendorLists.find(l => l.id === vendorListId);
       setSelectedList(list || null);
-      fetchSubscribers(selectedListName);
+      fetchSubscribers(vendorListId);
     } else {
       setSelectedList(null);
       setSubscribers([]);
     }
-  }, [selectedListName, vendorLists, selectedAccount]);
+  }, [vendorListId, vendorLists, selectedAccount]);
 
   const fetchVendorLists = async () => {
     try {
@@ -56,7 +57,7 @@ const VendorListsManagement = () => {
       setVendorLists(Array.isArray(lists?.vendor_lists) ? lists.vendor_lists : []);
       // Select first list by default
       if (Array.isArray(lists?.vendor_lists) && lists.vendor_lists.length > 0) {
-        setSelectedListName(lists.vendor_lists[0].name);
+        setVendorListId(lists.vendor_lists[0].id);
       }
     } catch (err) {
       console.error('Error fetching vendor lists:', err);
@@ -215,14 +216,14 @@ const VendorListsManagement = () => {
         <div className="header-actions">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <select
-              value={selectedListName}
-              onChange={e => setSelectedListName(e.target.value)}
-              className="search-input"
-              style={{ minWidth: 200 }}
-            >
-              {vendorLists.map((list, idx) => (
-                <option key={idx} value={list.name}>{list.name}</option>
-              ))}
+                value={vendorListId || ''}
+                onChange={e => setVendorListId(e.target.value)}
+                className="search-input"
+                style={{ minWidth: 200 }}
+              >
+                {vendorLists.map((list, idx) => (
+                  <option key={idx} value={list.id}>{list.name}</option>
+                ))}
             </select>
             <button className="request-vendors-btn" style={{ marginLeft: 8 }} onClick={() => setShowCreateModal(true)}>
               Create New List
@@ -270,7 +271,7 @@ const VendorListsManagement = () => {
                     <div key={idx} className="table-row">
                       <div
                         className="table-cell vendor-cell vendor-info-hover"
-                        style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', position: 'relative' }}
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', position: 'relative' }}
                         onClick={() => window.location.href = `/vendor/${encodeURIComponent(vendor)}`}
                         tabIndex={0}
                         role="button"
@@ -281,13 +282,23 @@ const VendorListsManagement = () => {
                           }
                         }}
                       >
-                        {getVendorLogo(vendor) && (
-                          <img src={getVendorLogo(vendor) ?? undefined} alt={(vendor ?? '') + ' logo'} style={{ width: 28, height: 28, objectFit: 'contain', marginRight: 10, borderRadius: 4, background: '#fff' }} />
-                        )}
-                        {vendor}
-                        <span className="vendor-info-arrow" style={{ display: 'none', marginLeft: 12, color: '#2563eb', fontWeight: 500, alignItems: 'center', gap: 4 }}>
-                          <span style={{ fontSize: '1rem', verticalAlign: 'middle' }}>→</span> More Information
+                        <span style={{ display: 'flex', alignItems: 'center' }}>
+                          {getVendorLogo(vendor) && (
+                            <img src={getVendorLogo(vendor) ?? undefined} alt={(vendor ?? '') + ' logo'} style={{ width: 28, height: 28, objectFit: 'contain', marginRight: 10, borderRadius: 4, background: '#fff' }} />
+                          )}
+                          {vendor}
                         </span>
+                        <button
+                          className="view-details-btn"
+                          style={{ padding: '0.3rem 0.8rem', fontSize: '0.95rem', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }}
+                          onClick={e => {
+                            e.stopPropagation();
+                            window.location.href = `/vendor/${encodeURIComponent(vendor)}`;
+                          }}
+                          aria-label={`View assessments for ${vendor}`}
+                        >
+                          View Assessments
+                        </button>
                       </div>
                     </div>
                   ))

@@ -86,7 +86,6 @@ const SupportedVendors = () => {
           <div className="table-header">
             <div className="table-cell header-cell">Vendor</div>
             <div className="table-cell header-cell">Website</div>
-            <div className="table-cell header-cell">Actions</div>
           </div>
 
           {filteredVendors.map((vendor, idx) => (
@@ -117,9 +116,6 @@ const SupportedVendors = () => {
                   aria-label={`More information about ${vendor.vendor}`}
                 >
                   {vendor.vendor}
-                  <span className="vendor-info-arrow" style={{ display: 'none', marginLeft: 12, color: '#2563eb', fontWeight: 500, alignItems: 'center', gap: 4 }}>
-                    <span style={{ fontSize: '1rem', verticalAlign: 'middle' }}>→</span> More Information
-                  </span>
                 </div>
               </div>
 
@@ -134,15 +130,6 @@ const SupportedVendors = () => {
                     {vendor.website_url}
                   </a>
                 )}
-              </div>
-
-              <div className="table-cell actions-cell">
-                <Link 
-                  to={`/vendor/${encodeURIComponent(vendor.vendor)}`}
-                  className="view-details-btn"
-                >
-                  View Details
-                </Link>
               </div>
             </div>
           ))}

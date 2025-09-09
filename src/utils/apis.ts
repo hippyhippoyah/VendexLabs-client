@@ -1,4 +1,4 @@
-import { IndividualSubscriptionsResponse, VendorAnalysis, VendorOverview, AccountSubscriptionsResponse, AllAccountsResponse, UsersByAccountIdResponse, VendorListUsersResponse } from './responseTypes';
+import { VendorListUsersResponse, UsersByAccountIdResponse, AllAccountsResponse, AccountSubscriptionsResponse, VendorOverview, IndividualSubscriptionsResponse, VendorAnalysis, VendorAssessment, VendorAssessmentsResponse } from './responseTypes';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL
 
@@ -330,4 +330,85 @@ export const removeVendorsFromList = async (accountId: string, vendorList: strin
     }
     return await response.json();
 }
+
+// Vendor Assessment Types
+
+// Vendor Assessments API
+export const addVendorAssessment = async (
+  accountId: string,
+  vendorListId: string,
+  data: Omit<VendorAssessment, 'id'>
+): Promise<{ id: string }> => {
+  const accessToken = getIdToken();
+  const response = await fetch(`${API_BASE_URL}/vendor-assessments?account-id=${encodeURIComponent(accountId)}&vendor-list-id=${encodeURIComponent(vendorListId)}`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${accessToken}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) {
+    throw new Error("Network response was not ok");
+  }
+  return await response.json();
+};
+
+export const getVendorAssessments = async (
+  accountId: string,
+  vendorListId: string
+): Promise<VendorAssessmentsResponse> => {
+  const accessToken = getIdToken();
+  const response = await fetch(`${API_BASE_URL}/vendor-assessments?account-id=${encodeURIComponent(accountId)}&vendor-list-id=${encodeURIComponent(vendorListId)}`, {
+    method: "GET",
+    headers: {
+      "Authorization": `Bearer ${accessToken}`,
+      "Content-Type": "application/json"
+    }
+  });
+  if (!response.ok) {
+    throw new Error("Network response was not ok");
+  }
+  return await response.json();
+};
+
+export const updateVendorAssessment = async (
+  accountId: string,
+  vendorListId: string,
+  assessmentId: string,
+  data: Partial<Omit<VendorAssessment, 'id'>>
+): Promise<string> => {
+  const accessToken = getIdToken();
+  const response = await fetch(`${API_BASE_URL}/vendor-assessments?account-id=${encodeURIComponent(accountId)}&vendor-list-id=${encodeURIComponent(vendorListId)}&assessment-id=${encodeURIComponent(assessmentId)}`, {
+    method: "PUT",
+    headers: {
+      "Authorization": `Bearer ${accessToken}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(data)
+  });
+  if (!response.ok) {
+    throw new Error("Network response was not ok");
+  }
+  return await response.text();
+};
+
+export const deleteVendorAssessment = async (
+  accountId: string,
+  vendorListId: string,
+  assessmentId: string
+): Promise<string> => {
+  const accessToken = getIdToken();
+  const response = await fetch(`${API_BASE_URL}/vendor-assessments?account-id=${encodeURIComponent(accountId)}&vendor-list-id=${encodeURIComponent(vendorListId)}&assessment-id=${encodeURIComponent(assessmentId)}`, {
+    method: "DELETE",
+    headers: {
+      "Authorization": `Bearer ${accessToken}`,
+      "Content-Type": "application/json"
+    }
+  });
+  if (!response.ok) {
+    throw new Error("Network response was not ok");
+  }
+  return await response.text();
+};
 

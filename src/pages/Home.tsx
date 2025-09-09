@@ -42,7 +42,7 @@ function Home({ onSignOut }) {
           <div className="quick-stats">
             <div className="stat-card">
               <h3>Total Vendors</h3>
-              <p className="stat-number">24</p>
+              <p className="stat-number">67</p>
             </div>
             <div className="stat-card">
               <h3>Active Subscriptions</h3>
