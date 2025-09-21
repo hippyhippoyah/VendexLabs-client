@@ -76,11 +76,11 @@ const VendorListsManagement = () => {
     }
   };
 
-  const fetchSubscribers = async (listName: string) => {
-    if (!selectedAccount?.id || !listName) return;
+  const fetchSubscribers = async (listId: string) => {
+    if (!selectedAccount?.id || !listId) return;
     setSubLoading(true);
     try {
-      const res: AccountSubscriptionsResponse = await getAccountSubscriptions(selectedAccount.id, listName);
+      const res: AccountSubscriptionsResponse = await getAccountSubscriptions(selectedAccount.id, listId);
       setSubscribers(res?.subscribers || []);
     } catch {
       setError('Failed to load subscribers');
@@ -101,10 +101,12 @@ const VendorListsManagement = () => {
     }
   };
 
-  const handleDeleteList = async (listName: string) => {
-    if (!window.confirm(`Are you sure you want to delete "${listName}"?`)) return;
+  const handleDeleteList = async (listId: string) => {
+    const list = vendorLists.find(l => l.id === listId);
+    if (!list) return;
+    if (!window.confirm(`Are you sure you want to delete "${list.name}"?`)) return;
     try {
-      await deleteVendorList(selectedAccount.id, listName);
+      await deleteVendorList(selectedAccount.id, listId);
       fetchVendorLists();
     } catch {
       setError('Failed to delete vendor list');
@@ -150,10 +152,10 @@ const VendorListsManagement = () => {
       const toRemove = selectedList.vendors.filter(v => !editSelectedVendors.includes(v));
       const toAdd = editSelectedVendors.filter(v => !selectedList.vendors.includes(v));
       if (toRemove.length > 0) {
-        await removeVendorsFromList(selectedAccount.id, selectedList.name, toRemove);
+        await removeVendorsFromList(selectedAccount.id, selectedList.id, toRemove);
       }
       if (toAdd.length > 0) {
-        await addVendorsToList(selectedAccount.id, selectedList.name, toAdd);
+        await addVendorsToList(selectedAccount.id, selectedList.id, toAdd);
       }
       setShowEditVendorsModal(false);
       fetchVendorLists();
@@ -171,9 +173,9 @@ const VendorListsManagement = () => {
     }
     setSubLoading(true);
     try {
-      await createAccountSubscription(selectedAccount.id, selectedList.name, [email]);
+      await createAccountSubscription(selectedAccount.id, selectedList.id, [email]);
       setEditSubscriberInput('');
-      fetchSubscribers(selectedList.name);
+      fetchSubscribers(selectedList.id);
     } catch {
       setError('Failed to add subscriber');
     } finally {
@@ -186,8 +188,8 @@ const VendorListsManagement = () => {
     if (!selectedList) return;
     setSubLoading(true);
     try {
-      await deleteAccountSubscription(selectedAccount.id, selectedList.name, [email]);
-      fetchSubscribers(selectedList.name);
+      await deleteAccountSubscription(selectedAccount.id, selectedList.id, [email]);
+      fetchSubscribers(selectedList.id);
     } catch {
       setError('Failed to remove subscriber');
     } finally {
@@ -232,7 +234,7 @@ const VendorListsManagement = () => {
               <button
                 className="delete-btn"
                 style={{ marginLeft: 8, padding: '0.5rem 0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                onClick={() => handleDeleteList(selectedList.name)}
+                onClick={() => handleDeleteList(selectedList.id)}
                 title="Delete List"
               >
                 <span role="img" aria-label="Delete" style={{ fontSize: '1.2rem' }}>🗑️</span>

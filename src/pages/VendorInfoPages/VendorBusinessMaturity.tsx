@@ -45,7 +45,7 @@ const VendorBusinessMaturity = () => {
   } = vendorData;
 
   // Helper function to format currency
-  const formatCurrency = (amount) => {
+  const formatCurrency = (amount: string) => {
     if (!amount || amount === "0.00") return "Not disclosed";
     const num = parseFloat(amount);
     if (num >= 1000000000) {
@@ -59,7 +59,7 @@ const VendorBusinessMaturity = () => {
   };
 
   // Helper function to format numbers
-  const formatNumber = (num) => {
+  const formatNumber = (num: number) => {
     if (!num || num === 0) return "Not disclosed";
     if (num >= 1000000) {
       return `${(num / 1000000).toFixed(1)}M`;

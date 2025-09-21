@@ -3,7 +3,7 @@ import { useAccount } from '../contexts/AccountContext.tsx';
 import { getEmailClaim } from '../utils/apis.ts';
 import './Home.css';
 
-function Home({ onSignOut }) {
+function Home({ onSignOut }: { onSignOut: () => void }) {
   const { selectedAccount } = useAccount();
 
   return (

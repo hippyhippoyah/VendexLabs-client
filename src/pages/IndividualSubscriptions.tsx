@@ -1,19 +1,19 @@
 
 import React, { useState, useEffect } from 'react';
 import { getAllVendors, getIndividualSubscriptions, createIndividualSubscription, deleteIndividualSubscriptions } from '../utils/apis';
-import { IndividualSubscriptionsResponse } from '../utils/responseTypes';
+import { IndividualSubscriptionsResponse, VendorOverview } from '../utils/responseTypes';
 import './VendorListsManagement.css';
 
 
 const IndividualSubscriptions = () => {
-  const [allVendors, setAllVendors] = useState<any[]>([]);
+  const [allVendors, setAllVendors] = useState<VendorOverview[]>([]);
   const [subscriptions, setSubscriptions] = useState<{ name: string }[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [showEditModal, setShowEditModal] = useState(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showEditModal, setShowEditModal] = useState<boolean>(false);
   const [editSelectedVendors, setEditSelectedVendors] = useState<string[]>([]);
-  const [vendorSearch, setVendorSearch] = useState('');
-  const [customVendorInput, setCustomVendorInput] = useState('');
+  const [vendorSearch, setVendorSearch] = useState<string>('');
+  const [customVendorInput, setCustomVendorInput] = useState<string>('');
 
   useEffect(() => {
     fetchAllVendors();
@@ -22,9 +22,9 @@ const IndividualSubscriptions = () => {
 
   const fetchAllVendors = async () => {
     try {
-      const vendors = await getAllVendors();
-      setAllVendors(vendors);
-    } catch{
+      const vendors: VendorOverview[] = await getAllVendors();
+      setAllVendors(Array.isArray(vendors) ? vendors : []);
+    } catch {
       setError('Failed to load vendors');
     }
   };
@@ -33,7 +33,7 @@ const IndividualSubscriptions = () => {
     setLoading(true);
     try {
       const res: IndividualSubscriptionsResponse = await getIndividualSubscriptions();
-      setSubscriptions(res?.vendors || []);
+      setSubscriptions(Array.isArray(res?.vendors) ? res.vendors : []);
     } catch {
       setError('Failed to load subscriptions');
     } finally {
@@ -56,10 +56,10 @@ const IndividualSubscriptions = () => {
     }
   };
 
-  const handleDeleteSubscription = async (vendor) => {
+  const handleDeleteSubscription = async (vendor: { name: string }) => {
     setLoading(true);
     try {
-      await deleteIndividualSubscriptions([vendor]);
+      await deleteIndividualSubscriptions([vendor.name]);
       fetchSubscriptions();
     } catch {
       setError('Failed to delete subscription');
@@ -82,16 +82,21 @@ const IndividualSubscriptions = () => {
   };
 
   return (
-    <div className="supported-vendors" style={{ padding: '2rem' }}>
+    <div className="supported-vendors">
       <header className="page-header">
-        <h1>Subscription Manager</h1>
-        <p className="page-description">Manage your custom Vendor List</p>
+        <h1>Individual Subscriptions</h1>
+        <p className="page-description">Manage your custom vendor subscriptions</p>
+        <div className="header-actions">
+          <button className="request-vendors-btn" onClick={() => setShowEditModal(true)} style={{ marginLeft: 8 }}>
+            Add Subscriptions
+          </button>
+        </div>
       </header>
 
       {error && (
         <div className="error-banner">
           <p>{error}</p>
-          <button onClick={() => setError('')} className="close-error">×</button>
+          <button onClick={() => setError(null)} className="close-error">×</button>
         </div>
       )}
 
@@ -104,19 +109,14 @@ const IndividualSubscriptions = () => {
         <div className="vendors-table-container" style={{ maxWidth: 600 }}>
           <div className="vendors-table">
             <div className="table-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div className="table-cell header-cell" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                Tracked Vendors
-              </div>
-              <button className="request-vendors-btn" onClick={() => setShowEditModal(true)} style={{ marginLeft: 8 }}>
-                Add Subscriptions
-              </button>
+              <div className="table-cell header-cell">Tracked Vendors</div>
             </div>
             {subscriptions.length > 0 ? (
               subscriptions.map((vendor, idx) => (
                 <div key={idx} className="table-row">
                   <div
                     className="table-cell vendor-cell vendor-info-hover"
-                    style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', position: 'relative' }}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', position: 'relative' }}
                     onClick={() => window.location.href = `/vendor/${encodeURIComponent(vendor.name)}`}
                     tabIndex={0}
                     role="button"
@@ -127,13 +127,28 @@ const IndividualSubscriptions = () => {
                       }
                     }}
                   >
-                    {vendor.name}
-                    <span className="vendor-info-arrow" style={{ display: 'none', marginLeft: 12, color: '#2563eb', fontWeight: 500, alignItems: 'center', gap: 4 }}>
-                      <span style={{ fontSize: '1rem', verticalAlign: 'middle' }}>→</span> More Information
+                    <span style={{ display: 'flex', alignItems: 'center' }}>
+                      {/* Show logo if available */}
+                      {(() => {
+                        const found = allVendors.find(v => v.vendor === vendor.name);
+                        return found && found.logo ? (
+                          <img src={found.logo} alt={vendor.name + ' logo'} style={{ width: 28, height: 28, objectFit: 'contain', marginRight: 10, borderRadius: 4, background: '#fff' }} />
+                        ) : null;
+                      })()}
+                      {vendor.name}
                     </span>
-                  </div>
-                  <div className="table-cell actions-cell">
-                    <button className="delete-btn" onClick={() => handleDeleteSubscription(vendor)}>
+                    <button
+                      className="view-details-btn"
+                      style={{ padding: '0.3rem 0.8rem', fontSize: '0.95rem', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }}
+                      onClick={e => {
+                        e.stopPropagation();
+                        window.location.href = `/vendor/${encodeURIComponent(vendor.name)}`;
+                      }}
+                      aria-label={`View assessments for ${vendor.name}`}
+                    >
+                      View Assessments
+                    </button>
+                    <button className="delete-btn" style={{ marginLeft: 8 }} onClick={e => { e.stopPropagation(); handleDeleteSubscription(vendor); }}>
                       Remove
                     </button>
                   </div>

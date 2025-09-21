@@ -1,18 +1,18 @@
 import React from 'react';
 import { useVendor } from '../contexts/VendorContext.tsx';
 import './VendorInfo.css';
+import { VendorAnalysis } from '../utils/responseTypes.ts';
 
 const VendorInfo = () => {
   const { vendorData, loading, error } = useVendor();
 
-  const VendorAnalysisCard = ({ data }) => {
-    if (!data) return null;
+  const VendorAnalysisCard = ({ data }: { data: VendorAnalysis }) => {
 
     const {
       vendor,
       logo,
       alias,
-      bus_type,
+      // bus_type,
       security_rating,
       headquarters_location,
       website_url,
@@ -63,7 +63,7 @@ const VendorInfo = () => {
               </div>
               <div className="vendor-info-row">
                 <span className="vendor-info-label">Industry</span>
-                <span className="vendor-info-value">{industry || (bus_type && bus_type.join(", ")) || 'Not specified'}</span>
+                <span className="vendor-info-value">{industry || 'Not specified'}</span>
               </div>
               {primary_product && (
                 <div className="vendor-info-row">
