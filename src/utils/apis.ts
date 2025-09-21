@@ -299,25 +299,9 @@ export const updateVendorList = async (accountId: string, vendorList: string, ve
     return await response.json();
 }
 
-export const addVendorsToList = async (accountId: string, vendorList: string, vendors: string[]): Promise<VendorListUsersResponse> => {
+export const saveVendorsToList = async (accountId: string, vendorList: string, vendors: string[]): Promise<VendorListUsersResponse> => {
     const accessToken = getIdToken();
-    const response = await fetch(`${API_BASE_URL}/vendor-lists?account-id=${encodeURIComponent(accountId)}&vendor-list=${encodeURIComponent(vendorList)}&operation=add-vendors`, {
-        method: "POST",
-        headers: {
-            "Authorization": `Bearer ${accessToken}`,
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ vendors })
-    });
-    if (!response.ok) {
-        throw new Error("Network response was not ok");
-    }
-    return await response.json();
-}
-
-export const removeVendorsFromList = async (accountId: string, vendorList: string, vendors: string[]): Promise<VendorListUsersResponse> => {
-    const accessToken = getIdToken();
-    const response = await fetch(`${API_BASE_URL}/vendor-lists?account-id=${encodeURIComponent(accountId)}&vendor-list=${encodeURIComponent(vendorList)}&operation=remove-vendors`, {
+    const response = await fetch(`${API_BASE_URL}/vendor-lists?account-id=${encodeURIComponent(accountId)}&vendor-list=${encodeURIComponent(vendorList)}&operation=save-vendors`, {
         method: "POST",
         headers: {
             "Authorization": `Bearer ${accessToken}`,

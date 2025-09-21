@@ -5,12 +5,11 @@ import {
   getAllVendorLists,
   createVendorList,
   deleteVendorList,
-  addVendorsToList,
-  removeVendorsFromList,
   getAllVendors,
   getAccountSubscriptions,
   createAccountSubscription,
-  deleteAccountSubscription
+  deleteAccountSubscription,
+  saveVendorsToList
 } from '../utils/apis.ts';
 import './VendorListsManagement.css';
 import { VendorOverview, AccountSubscriptionsResponse, VendorListUsersResponse, VendorList } from '../utils/responseTypes.ts';
@@ -148,15 +147,7 @@ const VendorListsManagement = () => {
   const handleSaveVendors = async () => {
     if (!selectedList) return;
     try {
-      // Remove all vendors first, then add selected
-      const toRemove = selectedList.vendors.filter(v => !editSelectedVendors.includes(v));
-      const toAdd = editSelectedVendors.filter(v => !selectedList.vendors.includes(v));
-      if (toRemove.length > 0) {
-        await removeVendorsFromList(selectedAccount.id, selectedList.id, toRemove);
-      }
-      if (toAdd.length > 0) {
-        await addVendorsToList(selectedAccount.id, selectedList.id, toAdd);
-      }
+      await saveVendorsToList(selectedAccount.id, selectedList.id, editSelectedVendors);
       setShowEditVendorsModal(false);
       fetchVendorLists();
     } catch {
