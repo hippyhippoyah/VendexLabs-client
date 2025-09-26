@@ -2,6 +2,9 @@
 
 This is the client website for VendexLabs.
 
+## Requisites
+You will need access to access the APIS
+
 ## Getting Started
 
 1. **Clone the repository** and navigate to the project directory.
@@ -12,7 +15,6 @@ This is the client website for VendexLabs.
     VITE_API_URL= ???
     VITE_COGNITO_AUTHORITY= ???
     VITE_COGNITO_CLIENT_ID= ???
-    VITE_COGNITO_REDIRECT_URI= ???
     VITE_COGNITO_DOMAIN= ???
     ```
 
@@ -28,4 +30,5 @@ This is the client website for VendexLabs.
     npm run dev
     ```
 
+5. **Run Client**
 The app should now be running at [http://localhost:5173](http://localhost:5173).
