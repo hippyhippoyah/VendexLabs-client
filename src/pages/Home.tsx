@@ -34,6 +34,13 @@ function Home({ onSignOut }: { onSignOut: () => void }) {
             {selectedAccount && (
               <div className="current-account">
                 <strong>Current Account:</strong> <span className="account-display">{selectedAccount.name}</span>
+                {selectedAccount.id === 'individual' && (
+                  <div className="trial-notice">
+                    <p className="trial-message">
+                      This is a free individual trial account. Contact <a href="mailto:info@vendexlabs.com">info@vendexlabs.com</a> to upgrade.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>
