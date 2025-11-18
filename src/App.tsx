@@ -17,6 +17,7 @@ import VendorSecurityInstances from "./pages/VendorInfoPages/VendorSecurityInsta
 import VendorAssessmentTracking from "./pages/VendorInfoPages/VendorAssessmentTracking.tsx";
 import IndividualSubscriptions from "./pages/IndividualSubscriptions.tsx";
 import './App.css';
+import LandingPage from "./pages/marketing/LandingPage.tsx";
 
 function App() {
   const auth = useAuth();
@@ -71,11 +72,7 @@ function App() {
   }
 
   return (
-    <div className="login-container">
-      <img src={vendexLogo} className="logo" alt="Vlogo" />
-      <h1>VendexLabs</h1>
-      <button onClick={() => auth.signinRedirect()}>Sign in</button>
-    </div>
+    <LandingPage onSignIn={() => auth.signinRedirect()} />
   );
 }
 
