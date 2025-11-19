@@ -10,6 +10,7 @@ import SupportedVendors from "./pages/SupportedVendors.tsx";
 import OrgManager from "./pages/OrgManager.tsx";
 import VendorInfo from "./pages/VendorInfo.tsx";
 import VendorListsManagement from "./pages/VendorListsManagement.tsx";
+import VendorAlerts from "./pages/VendorAlerts.tsx";
 import VendorGeneralCompliance from "./pages/VendorInfoPages/VendorGeneralCompliance.tsx";
 import VendorPrivacyControls from "./pages/VendorInfoPages/VendorPrivacyControls.tsx";
 import VendorBusinessMaturity from "./pages/VendorInfoPages/VendorBusinessMaturity.tsx";
@@ -18,6 +19,7 @@ import VendorAssessmentTracking from "./pages/VendorInfoPages/VendorAssessmentTr
 import IndividualSubscriptions from "./pages/IndividualSubscriptions.tsx";
 import './App.css';
 import LandingPage from "./pages/marketing/LandingPage.tsx";
+import React from 'react';
 
 function App() {
   const auth = useAuth();
@@ -47,11 +49,9 @@ function App() {
             <main className="main-content">
               <Routes>
                 <Route path="/" element={<Home onSignOut={signOutRedirect} />} />
-                <Route path="/supported-vendors" element={<SupportedVendors />} />
-                <Route path="/org-manager" element={<OrgManager />} />
-                <Route path="/vendor-lists" element={<VendorListsManagement />} />
-                <Route path="/individual-subscriptions" element={<IndividualSubscriptions />} />
-                <Route path="/vendor/:vendor_name/*" element={
+                <Route path="/vendors/supported" element={<SupportedVendors />} />
+                <Route path="/vendors/alerts" element={<VendorAlerts />} />
+                <Route path="/vendors/:vendor_name/*" element={
                   <VendorProvider>
                     <Routes>
                       <Route index element={<VendorInfo />} />
@@ -63,6 +63,9 @@ function App() {
                     </Routes>
                   </VendorProvider>
                 } />
+                <Route path="/vendors" element={<VendorListsManagement />} />
+                <Route path="/management" element={<OrgManager />} />
+                <Route path="/individual-subscriptions" element={<IndividualSubscriptions />} />
               </Routes>
             </main>
           </div>

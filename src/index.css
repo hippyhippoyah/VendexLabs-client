@@ -7,7 +7,7 @@
   --border: #e2e8f0;
   --radius: 20px;
   --shadow: 0 4px 24px 0 rgba(16, 30, 54, 0.08);
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'PP Mori', 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
   font-size: 16px;
   color: var(--text);
   background: var(--background);

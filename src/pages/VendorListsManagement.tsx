@@ -1,35 +1,39 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAccount } from '../contexts/AccountContext.tsx';
-import { useVendorList } from '../contexts/VendorListContext';
 import {
   getAllVendorLists,
-  createVendorList,
-  deleteVendorList,
   getAllVendors,
-  getAccountSubscriptions,
-  createAccountSubscription,
-  deleteAccountSubscription,
-  saveVendorsToList
+  saveVendorsToList,
+  getOneVendor
 } from '../utils/apis.ts';
 import './VendorListsManagement.css';
-import { VendorOverview, AccountSubscriptionsResponse, VendorListUsersResponse, VendorList } from '../utils/responseTypes.ts';
+import { VendorOverview, VendorListUsersResponse, VendorList, VendorAnalysis } from '../utils/responseTypes.ts';
 
+interface VendorDetails {
+  vendor: string;
+  category?: string;
+  owner?: string;
+  riskLevel?: 'Low' | 'Medium' | 'High';
+  lastReview?: string;
+  alerts?: number;
+  logo?: string;
+}
 
 const VendorListsManagement = () => {
   const { selectedAccount } = useAccount();
-  const { vendorListId, setVendorListId } = useVendorList();
   const [vendorLists, setVendorLists] = useState<VendorList[]>([]);
   const [allVendors, setAllVendors] = useState<VendorOverview[]>([]);
+  const [vendorDetails, setVendorDetails] = useState<Map<string, VendorDetails>>(new Map());
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
-  const [newListName, setNewListName] = useState<string>('');
   const [selectedList, setSelectedList] = useState<VendorList | null>(null);
-  const [subscribers, setSubscribers] = useState<AccountSubscriptionsResponse['subscribers']>([]);
-  const [subLoading, setSubLoading] = useState<boolean>(false);
-  // Edit Subscribers Modal State
-  const [showEditSubscribersModal, setShowEditSubscribersModal] = useState<boolean>(false);
-  const [editSubscriberInput, setEditSubscriberInput] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  
+  // Edit Vendors Modal State
+  const [showEditVendorsModal, setShowEditVendorsModal] = useState<boolean>(false);
+  const [editVendorSearch, setEditVendorSearch] = useState<string>('');
+  const [editSelectedVendors, setEditSelectedVendors] = useState<string[]>([]);
+  const [customVendorInput, setCustomVendorInput] = useState<string>('');
 
   useEffect(() => {
     if (selectedAccount?.id) {
@@ -39,25 +43,26 @@ const VendorListsManagement = () => {
   }, [selectedAccount]);
 
   useEffect(() => {
-    if (vendorListId && selectedAccount?.id) {
-      const list = vendorLists.find(l => l.id === vendorListId);
-      setSelectedList(list || null);
-      fetchSubscribers(vendorListId);
+    // Use first list (master-list) if available
+    if (vendorLists.length > 0 && selectedAccount?.id) {
+      setSelectedList(vendorLists[0]);
     } else {
       setSelectedList(null);
-      setSubscribers([]);
     }
-  }, [vendorListId, vendorLists, selectedAccount]);
+  }, [vendorLists, selectedAccount]);
+
+  useEffect(() => {
+    // Fetch vendor details for vendors in the selected list
+    if (selectedList?.vendors && selectedList.vendors.length > 0 && allVendors.length > 0) {
+      fetchVendorDetails(selectedList.vendors);
+    }
+  }, [selectedList, allVendors]);
 
   const fetchVendorLists = async () => {
     try {
       setLoading(true);
       const lists: VendorListUsersResponse = await getAllVendorLists(selectedAccount.id);
       setVendorLists(Array.isArray(lists?.vendor_lists) ? lists.vendor_lists : []);
-      // Select first list by default
-      if (Array.isArray(lists?.vendor_lists) && lists.vendor_lists.length > 0) {
-        setVendorListId(lists.vendor_lists[0].id);
-      }
     } catch (err) {
       console.error('Error fetching vendor lists:', err);
       setError('Failed to load vendor lists');
@@ -75,48 +80,81 @@ const VendorListsManagement = () => {
     }
   };
 
-  const fetchSubscribers = async (listId: string) => {
-    if (!selectedAccount?.id || !listId) return;
-    setSubLoading(true);
+  const fetchVendorDetails = async (vendorNames: string[]) => {
+    if (allVendors.length === 0) return;
+    
+    const detailsMap = new Map<string, VendorDetails>();
+    
+    // Initialize with basic info from allVendors
+    vendorNames.forEach(vendorName => {
+      const vendorObj = allVendors.find(v => v.vendor === vendorName);
+      detailsMap.set(vendorName, {
+        vendor: vendorName,
+        logo: vendorObj?.logo,
+        category: vendorObj ? getCategoryFromVendor(vendorObj) : undefined,
+        owner: undefined,
+        riskLevel: undefined,
+        lastReview: undefined,
+        alerts: 0
+      });
+    });
+
+    // Try to fetch detailed info for each vendor (limit to avoid too many requests)
+    const fetchPromises = vendorNames.slice(0, 10).map(async (vendorName) => {
+      try {
+        const data: VendorAnalysis[] = await getOneVendor(vendorName);
+        if (data && data.length > 0) {
+          const vendorData = data[0];
+          const existing = detailsMap.get(vendorName) || { vendor: vendorName };
+          detailsMap.set(vendorName, {
+            ...existing,
+            category: vendorData.industry || existing.category,
+            riskLevel: getRiskLevelFromScore(vendorData.risk_score),
+            lastReview: vendorData.last_reviewed ? formatDate(vendorData.last_reviewed) : undefined,
+            alerts: 0 // This would need to come from a different API
+          });
+        }
+      } catch (err) {
+        console.error(`Error fetching details for ${vendorName}:`, err);
+      }
+    });
+
+    await Promise.all(fetchPromises);
+    setVendorDetails(detailsMap);
+  };
+
+  const getCategoryFromVendor = (vendor: VendorOverview): string => {
+    // Map common vendors to categories (this could be improved with actual data)
+    const categoryMap: Record<string, string> = {
+      'AWS': 'Cloud Infrastructure',
+      'Snowflake': 'Data Warehouse',
+      'Okta': 'Identity Provider',
+      'Microsoft': 'Cloud Infrastructure',
+      'Google': 'Cloud Infrastructure',
+      'Salesforce': 'CRM',
+      'Slack': 'Communication',
+      'Zoom': 'Communication'
+    };
+    return categoryMap[vendor.vendor] || 'Other';
+  };
+
+  const getRiskLevelFromScore = (score?: number): 'Low' | 'Medium' | 'High' => {
+    if (!score) return 'Medium';
+    if (score <= 3) return 'Low';
+    if (score <= 6) return 'Medium';
+    return 'High';
+  };
+
+  const formatDate = (dateString: string): string => {
     try {
-      const res: AccountSubscriptionsResponse = await getAccountSubscriptions(selectedAccount.id, listId);
-      setSubscribers(res?.subscribers || []);
+      const date = new Date(dateString);
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return `${months[date.getMonth()]} ${date.getDate()}`;
     } catch {
-      setError('Failed to load subscribers');
-    } finally {
-      setSubLoading(false);
+      return dateString;
     }
   };
 
-  const handleCreateList = async () => {
-    if (!newListName.trim()) return;
-    try {
-      await createVendorList(selectedAccount.id, newListName);
-      setNewListName('');
-      setShowCreateModal(false);
-      fetchVendorLists();
-    } catch {
-      setError('Failed to create vendor list');
-    }
-  };
-
-  const handleDeleteList = async (listId: string) => {
-    const list = vendorLists.find(l => l.id === listId);
-    if (!list) return;
-    if (!window.confirm(`Are you sure you want to delete "${list.name}"?`)) return;
-    try {
-      await deleteVendorList(selectedAccount.id, listId);
-      fetchVendorLists();
-    } catch {
-      setError('Failed to delete vendor list');
-    }
-  };
-
-  // Edit Vendors Modal State
-  const [showEditVendorsModal, setShowEditVendorsModal] = useState<boolean>(false);
-  const [editVendorSearch, setEditVendorSearch] = useState<string>('');
-  const [editSelectedVendors, setEditSelectedVendors] = useState<string[]>([]);
-  const [customVendorInput, setCustomVendorInput] = useState<string>('');
   // Add custom vendor to selection
   const handleAddCustomVendor = () => {
     const vendorName = customVendorInput.trim();
@@ -138,12 +176,6 @@ const VendorListsManagement = () => {
     vendor.vendor?.toLowerCase().includes(editVendorSearch.toLowerCase())
   );
 
-  // Helper to get logo for a vendor name
-  const getVendorLogo = (vendorName: string) => {
-    const vendorObj = allVendors.find(v => v.vendor === vendorName);
-    return vendorObj?.logo || null;
-  };
-
   const handleSaveVendors = async () => {
     if (!selectedList) return;
     try {
@@ -155,42 +187,14 @@ const VendorListsManagement = () => {
     }
   };
 
-  // Add subscriber (modal)
-  const handleAddSubscriber = async (email: string) => {
-    if (!email.trim() || !selectedList) return;
-    if (subscribers.some(sub => sub.email === email)) {
-      setEditSubscriberInput('');
-      return;
-    }
-    setSubLoading(true);
-    try {
-      await createAccountSubscription(selectedAccount.id, selectedList.id, [email]);
-      setEditSubscriberInput('');
-      fetchSubscribers(selectedList.id);
-    } catch {
-      setError('Failed to add subscriber');
-    } finally {
-      setSubLoading(false);
-    }
-  };
-
-  // Remove subscriber (modal)
-  const handleRemoveSubscriber = async (email: string) => {
-    if (!selectedList) return;
-    setSubLoading(true);
-    try {
-      await deleteAccountSubscription(selectedAccount.id, selectedList.id, [email]);
-      fetchSubscribers(selectedList.id);
-    } catch {
-      setError('Failed to remove subscriber');
-    } finally {
-      setSubLoading(false);
-    }
-  };
+  // Filter vendors by search term
+  const filteredVendors = selectedList?.vendors?.filter(vendor =>
+    vendor?.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
 
   if (!selectedAccount) {
     return (
-      <div className="vendor-lists-container">
+      <div className="vendors-container">
         <div className="no-account-state">
           <h3>No Account Selected</h3>
           <p>Please select an account to manage vendor lists.</p>
@@ -199,354 +203,227 @@ const VendorListsManagement = () => {
     );
   }
 
+  if (loading) {
+    return (
+      <div className="vendors-container">
+        <div className="loading-state">
+          <div className="loading-spinner"></div>
+          <p>Loading vendors...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="vendors-container">
+        <div className="error-state">
+          <p>{error}</p>
+          <button onClick={() => window.location.reload()} className="retry-btn">
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="supported-vendors">
-      <header className="page-header">
-        <h1>Vendor Lists Management</h1>
-        <p className="page-description">
-          Manage and configure vendor lists for {selectedAccount.name}
+    <div className="vendors-container">
+      <header className="vendors-header">
+        <h1 className="vendors-title">Vendors</h1>
+        <p className="vendors-description">
+          Manage and review all third-party vendors. Track risk, compliance, assessments, and alerts.
         </p>
-        <div className="header-actions">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <select
-                value={vendorListId || ''}
-                onChange={e => setVendorListId(e.target.value)}
-                className="search-input"
-                style={{ minWidth: 200 }}
-              >
-                {vendorLists.map((list, idx) => (
-                  <option key={idx} value={list.id}>{list.name}</option>
-                ))}
-            </select>
-            <button className="request-vendors-btn" style={{ marginLeft: 8 }} onClick={() => setShowCreateModal(true)}>
-              Create New List
+        <div className="vendors-header-actions">
+          <div className="vendors-buttons">
+            <button className="add-vendor-btn" onClick={() => setShowEditVendorsModal(true)}>
+              + Add Vendor
             </button>
-            {selectedList && (
-              <button
-                className="delete-btn"
-                style={{ marginLeft: 8, padding: '0.5rem 0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                onClick={() => handleDeleteList(selectedList.id)}
-                title="Delete List"
-              >
-                <span role="img" aria-label="Delete" style={{ fontSize: '1.2rem' }}>🗑️</span>
-              </button>
-            )}
+            <button className="import-vendors-btn">
+              Import Vendors
+            </button>
+          </div>
+          <div className="search-wrapper">
+            <svg className="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7.33333 12.6667C10.2789 12.6667 12.6667 10.2789 12.6667 7.33333C12.6667 4.38781 10.2789 2 7.33333 2C4.38781 2 2 4.38781 2 7.33333C2 10.2789 4.38781 12.6667 7.33333 12.6667Z" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M14 14L11.1 11.1" stroke="#6B7280" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <input
+              type="text"
+              placeholder="Search vendors"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="vendors-search-input"
+            />
           </div>
         </div>
       </header>
 
-      {error && (
-        <div className="error-banner">
-          <p>{error}</p>
-          <button onClick={() => setError(null)} className="close-error">×</button>
-        </div>
-      )}
-
-      {loading ? (
-        <div className="loading-state">
-          <div className="loading-spinner"></div>
-          <p>Loading vendor lists...</p>
-        </div>
-      ) : (
-        <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start' }}>
-          {/* Vendors Table */}
-          <div style={{ flex: 2 }}>
-            <div className="vendors-table-container">
-              <div className="vendors-table">
-                <div className="table-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div className="table-cell header-cell">Vendor</div>
-                  <button className="view-details-btn" onClick={() => setShowEditVendorsModal(true)} disabled={!selectedList} style={{ marginLeft: 8 }}>
-                    Edit Vendors
-                  </button>
-                </div>
-                {(selectedList && Array.isArray(selectedList.vendors) && selectedList.vendors.length > 0) ? (
-                  selectedList.vendors.map((vendor, idx) => (
-                    <div key={idx} className="table-row">
-                      <div
-                        className="table-cell vendor-cell vendor-info-hover"
-                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', position: 'relative' }}
-                        onClick={() => window.location.href = `/vendor/${encodeURIComponent(vendor)}`}
-                        tabIndex={0}
-                        role="button"
-                        aria-label={`More information about ${vendor}`}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            window.location.href = `/vendor/${encodeURIComponent(vendor)}`;
-                          }
-                        }}
-                      >
-                        <span style={{ display: 'flex', alignItems: 'center' }}>
-                          {getVendorLogo(vendor) && (
-                            <img src={getVendorLogo(vendor) ?? undefined} alt={(vendor ?? '') + ' logo'} style={{ width: 28, height: 28, objectFit: 'contain', marginRight: 10, borderRadius: 4, background: '#fff' }} />
-                          )}
-                          {vendor}
-                        </span>
-                        <button
-                          className="view-details-btn"
-                          style={{ padding: '0.3rem 0.8rem', fontSize: '0.95rem', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' }}
-                          onClick={e => {
-                            e.stopPropagation();
-                            window.location.href = `/vendor/${encodeURIComponent(vendor)}`;
-                          }}
-                          aria-label={`View assessments for ${vendor}`}
-                        >
-                          View Assessments
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="empty-state">
-                    <h3>No vendors in this list</h3>
-                    <p>Add vendors using the Edit button above.</p>
-                  </div>
-                )}
-              </div>
+      <div className="vendors-section">
+        <h2 className="vendors-section-title">Your Vendors ({filteredVendors.length})</h2>
+        <div className="vendors-table-wrapper">
+          <div className="vendors-table">
+            <div className="vendors-table-header">
+              <div className="vendors-table-cell header">Name</div>
+              <div className="vendors-table-cell header">Category</div>
+              <div className="vendors-table-cell header">Owner</div>
+              <div className="vendors-table-cell header">Risk Level</div>
+              <div className="vendors-table-cell header">Last Review</div>
+              <div className="vendors-table-cell header">Alerts</div>
             </div>
 
-          {/* Edit Vendors Modal */}
-          {showEditVendorsModal && (
-            <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.25)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div className="modal" style={{ background: '#fff', borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.18)', maxWidth: 420, width: '100%', padding: 0 }}>
-                <div className="modal-header" style={{ padding: '1.5rem 1.5rem 0.5rem 1.5rem', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>Edit Vendors in List</h3>
-                  <button className="close-modal" style={{ fontSize: '1.5rem', background: 'none', border: 'none', cursor: 'pointer', color: '#374151' }} onClick={() => setShowEditVendorsModal(false)}>×</button>
-                </div>
-                <div className="modal-body" style={{ padding: '1.5rem' }}>
-                  <input
-                    type="text"
-                    placeholder="Search vendors..."
-                    value={editVendorSearch}
-                    onChange={e => setEditVendorSearch(e.target.value)}
-                    className="search-input"
-                    style={{ marginBottom: 12, width: '90%' }}
-                  />
-                  <div style={{ maxHeight: 180, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: 8, padding: 8, background: '#fafbff', marginBottom: 16 }}>
-                    {filteredAllVendors.length > 0 ? (
-                      filteredAllVendors.map((vendor, idx) => (
-                        <label key={idx} style={{ display: 'flex', alignItems: 'center', marginBottom: 8, cursor: 'pointer' }}>
-                          <input
-                            type="checkbox"
-                            checked={editSelectedVendors.includes(vendor.vendor)}
-                            onChange={e => {
-                              if (e.target.checked) {
-                                setEditSelectedVendors([...editSelectedVendors, vendor.vendor]);
-                              } else {
-                                setEditSelectedVendors(editSelectedVendors.filter(v => v !== vendor.vendor));
-                              }
+            {filteredVendors.length > 0 ? (
+              filteredVendors.map((vendor, idx) => {
+                const details = vendorDetails.get(vendor) || { vendor };
+                const vendorObj = allVendors.find(v => v.vendor === vendor);
+                const logo = details.logo || vendorObj?.logo;
+
+                return (
+                  <div key={idx} className="vendors-table-row">
+                    <div className="vendors-table-cell vendor-name-cell">
+                      <div className="vendor-logo-wrapper">
+                        {logo ? (
+                          <img 
+                            src={logo} 
+                            alt={`${vendor} logo`}
+                            className="vendor-logo-img"
+                            onError={(e) => {
+                              const img = e.target as HTMLImageElement;
+                              img.style.display = 'none';
+                              const fallback = img.nextSibling as HTMLElement | null;
+                              if (fallback) fallback.style.display = 'flex';
                             }}
-                            style={{ marginRight: 8 }}
                           />
-                          {vendor.logo && (
-                            <img src={vendor.logo} alt={vendor.vendor + ' logo'} style={{ width: 24, height: 24, objectFit: 'contain', marginRight: 8, borderRadius: 4, background: '#fff' }} />
-                          )}
-                          {vendor.vendor}
-                        </label>
-                      ))
-                    ) : (
-                      <div style={{ textAlign: 'center', color: '#6b7280', padding: 8 }}>No vendors found.</div>
-                    )}
-                  </div>
-                  <div style={{ marginBottom: 16 }}>
-                    <input
-                      type="text"
-                      placeholder="Add custom vendor..."
-                      value={customVendorInput}
-                      onChange={e => setCustomVendorInput(e.target.value)}
-                      className="search-input"
-                      style={{ width: '90%' }}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter' && customVendorInput.trim()) {
-                          handleAddCustomVendor();
-                        }
-                      }}
-                    />
-                    <button
-                      className="view-details-btn"
-                      style={{ marginTop: 8, width: '100%' }}
-                      onClick={handleAddCustomVendor}
-                      disabled={!customVendorInput.trim()}
-                    >
-                      Add Custom Vendor
-                    </button>
-                  </div>
-                  <div style={{ marginBottom: 8 }}>
-                    <div style={{ fontWeight: 600, marginBottom: 4 }}>Selected Vendors:</div>
-                    {editSelectedVendors.length > 0 ? (
-                      <ul style={{ paddingLeft: 18, margin: 0 }}>
-                        {editSelectedVendors.map((v, idx) => (
-                          <li key={idx} style={{ marginBottom: 2, display: 'flex', alignItems: 'center' }}>
-                            {v}
-                            <button
-                              style={{ marginLeft: 8, background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: '1rem' }}
-                              onClick={() => setEditSelectedVendors(editSelectedVendors.filter(x => x !== v))}
-                              title="Remove"
-                            >×</button>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <div style={{ color: '#6b7280' }}>None selected.</div>
-                    )}
-                  </div>
-                </div>
-                <div className="modal-footer" style={{ padding: '1rem 1.5rem', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
-                  <button className="cancel-btn" onClick={() => setShowEditVendorsModal(false)} style={{ minWidth: 90 }}>Cancel</button>
-                  <button className="create-btn" onClick={handleSaveVendors} disabled={editSelectedVendors.length === 0} style={{ minWidth: 90 }}>Save</button>
-                </div>
-              </div>
-            </div>
-          )}
-          </div>
-
-          {/* Subscribers Table */}
-          <div style={{ flex: 1 }}>
-            <div className="vendors-table-container">
-              <div className="vendors-table" style={{minWidth: '500px'}}>
-                <div className="table-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div className="table-cell header-cell">Subscriber Email</div>
-                  <button className="view-details-btn" onClick={() => setShowEditSubscribersModal(true)} disabled={!selectedList} style={{ marginLeft: 8 }}>
-                    Edit Subscribers
-                  </button>
-                </div>
-                {subLoading ? (
-                  <div className="loading-state">
-                    <div className="loading-spinner"></div>
-                    <p>Loading subscribers...</p>
-                  </div>
-                ) : (
-                  subscribers.length > 0 ? (
-                    subscribers.map((sub, idx) => (
-                      <div key={idx} className="table-row">
-                        <div className="table-cell vendor-cell">{sub.email}</div>
-                        <div className="table-cell vendor-cell">
-                          {sub.verified ? (
-                            <span style={{ color: '#059669', fontWeight: 600 }}>Verified</span>
-                          ) : (
-                            <span style={{ color: '#dc2626', fontWeight: 600 }}>Unverified</span>
-                          )}
+                        ) : null}
+                        <div className="vendor-logo-fallback" style={{ display: logo ? 'none' : 'flex' }}>
+                          {vendor?.charAt(0)?.toUpperCase()}
                         </div>
                       </div>
-                    ))
-                  ) : (
-                    <div className="empty-state">
-                      <h3>No subscribers</h3>
-                      <p>Add subscribers using the Edit button above.</p>
+                      <span
+                        className="vendor-name-link"
+                        onClick={() => window.location.href = `/vendor/${encodeURIComponent(vendor)}`}
+                      >
+                        {vendor}
+                      </span>
                     </div>
-                  )
-                )}
-              </div>
-            </div>
-            {/* Edit Subscribers Modal */}
-            {showEditSubscribersModal && (
-              <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0,0,0,0.25)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div className="modal" style={{ background: '#fff', borderRadius: 12, boxShadow: '0 8px 32px rgba(0,0,0,0.18)', maxWidth: 420, width: '100%', padding: 0 }}>
-                  <div className="modal-header" style={{ padding: '1.5rem 1.5rem 0.5rem 1.5rem', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>Edit Subscribers</h3>
-                    <button className="close-modal" style={{ fontSize: '1.5rem', background: 'none', border: 'none', cursor: 'pointer', color: '#374151' }} onClick={() => setShowEditSubscribersModal(false)}>×</button>
-                  </div>
-                  <div className="modal-body" style={{ padding: '1.5rem' }}>
-                    <input
-                      type="email"
-                      placeholder="Add subscriber email..."
-                      value={editSubscriberInput}
-                      onChange={e => setEditSubscriberInput(e.target.value)}
-                      className="search-input"
-                      style={{ marginBottom: 12, width: '90%' }}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter' && editSubscriberInput.trim()) {
-                          handleAddSubscriber(editSubscriberInput.trim());
-                        }
-                      }}
-                    />
-                    <button
-                      className="view-details-btn"
-                      style={{ marginBottom: 16, width: '90%' }}
-                      onClick={() => handleAddSubscriber(editSubscriberInput.trim())}
-                      disabled={!editSubscriberInput.trim()}
-                    >
-                      Add Subscriber
-                    </button>
-                    <div style={{ fontWeight: 600, marginBottom: 8 }}>Current Subscribers:</div>
-                    {subLoading ? (
-                      <div className="loading-state">
-                        <div className="loading-spinner"></div>
-                        <p>Loading subscribers...</p>
-                      </div>
-                    ) : (
-                      subscribers.length > 0 ? (
-                        <ul style={{ paddingLeft: 18, margin: 0 }}>
-                          {subscribers.map((sub, idx) => (
-                            <li key={idx} style={{ marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                              <span>
-                                {sub.email}
-                                {sub.verified ? (
-                                  <span style={{ color: '#059669', fontWeight: 600, marginLeft: 8 }}>Verified</span>
-                                ) : (
-                                  <span style={{ color: '#dc2626', fontWeight: 600, marginLeft: 8 }}>Unverified</span>
-                                )}
-                              </span>
-                              <button
-                                style={{ marginLeft: 8, background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: '1rem' }}
-                                onClick={() => handleRemoveSubscriber(sub.email)}
-                                title="Remove"
-                              >×</button>
-                            </li>
-                          ))}
-                        </ul>
+                    <div className="vendors-table-cell">{details.category || '—'}</div>
+                    <div className="vendors-table-cell">{details.owner || '—'}</div>
+                    <div className="vendors-table-cell">
+                      {details.riskLevel ? (
+                        <span className={`risk-badge risk-${details.riskLevel.toLowerCase()}`}>
+                          {details.riskLevel}
+                        </span>
                       ) : (
-                        <div style={{ color: '#6b7280' }}>No subscribers.</div>
-                      )
-                    )}
+                        '—'
+                      )}
+                    </div>
+                    <div className="vendors-table-cell">{details.lastReview || '—'}</div>
+                    <div className="vendors-table-cell">{details.alerts ?? '—'}</div>
                   </div>
-                  <div className="modal-footer" style={{ padding: '1rem 1.5rem', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
-                    <button className="cancel-btn" onClick={() => setShowEditSubscribersModal(false)} style={{ minWidth: 90 }}>Close</button>
-                  </div>
-                </div>
+                );
+              })
+            ) : (
+              <div className="vendors-empty-state">
+                <h3>No vendors found</h3>
+                <p>{searchTerm ? 'No vendors match your search criteria.' : 'Add vendors using the + Add Vendor button above.'}</p>
               </div>
             )}
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Create List Modal */}
-      {showCreateModal && (
+      <div className="supported-vendors-section">
+        <h2 className="supported-vendors-title">Supported Vendors</h2>
+        <a href="/vendors/supported" className="supported-vendors-link">
+          View supported vendors →
+        </a>
+      </div>
+
+      {/* Edit Vendors Modal */}
+      {showEditVendorsModal && (
         <div className="modal-overlay">
           <div className="modal">
             <div className="modal-header">
-              <h3>Create New Vendor List</h3>
-              <button 
-                className="close-modal"
-                onClick={() => setShowCreateModal(false)}
-              >
-                ×
-              </button>
+              <h3>Edit Vendors in List</h3>
+              <button className="close-modal" onClick={() => setShowEditVendorsModal(false)}>×</button>
             </div>
             <div className="modal-body">
-              <label htmlFor="listName">List Name:</label>
               <input
-                id="listName"
                 type="text"
-                value={newListName}
-                onChange={(e) => setNewListName(e.target.value)}
-                placeholder="Enter list name..."
-                className="list-name-input"
+                placeholder="Search vendors..."
+                value={editVendorSearch}
+                onChange={e => setEditVendorSearch(e.target.value)}
+                className="search-input"
               />
+              <div className="modal-vendors-list">
+                {filteredAllVendors.length > 0 ? (
+                  filteredAllVendors.map((vendor, idx) => (
+                    <label key={idx} className="modal-vendor-item">
+                      <input
+                        type="checkbox"
+                        checked={editSelectedVendors.includes(vendor.vendor)}
+                        onChange={e => {
+                          if (e.target.checked) {
+                            setEditSelectedVendors([...editSelectedVendors, vendor.vendor]);
+                          } else {
+                            setEditSelectedVendors(editSelectedVendors.filter(v => v !== vendor.vendor));
+                          }
+                        }}
+                      />
+                      {vendor.logo && (
+                        <img src={vendor.logo} alt={vendor.vendor + ' logo'} className="modal-vendor-logo" />
+                      )}
+                      {vendor.vendor}
+                    </label>
+                  ))
+                ) : (
+                  <div className="modal-empty">No vendors found.</div>
+                )}
+              </div>
+              <div className="modal-custom-vendor">
+                <input
+                  type="text"
+                  placeholder="Add custom vendor..."
+                  value={customVendorInput}
+                  onChange={e => setCustomVendorInput(e.target.value)}
+                  className="search-input"
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && customVendorInput.trim()) {
+                      handleAddCustomVendor();
+                    }
+                  }}
+                />
+                <button
+                  className="add-custom-btn"
+                  onClick={handleAddCustomVendor}
+                  disabled={!customVendorInput.trim()}
+                >
+                  Add Custom Vendor
+                </button>
+              </div>
+              <div className="modal-selected">
+                <div className="modal-selected-title">Selected Vendors:</div>
+                {editSelectedVendors.length > 0 ? (
+                  <ul className="modal-selected-list">
+                    {editSelectedVendors.map((v, idx) => (
+                      <li key={idx} className="modal-selected-item">
+                        {v}
+                        <button
+                          className="remove-vendor-btn"
+                          onClick={() => setEditSelectedVendors(editSelectedVendors.filter(x => x !== v))}
+                          title="Remove"
+                        >×</button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="modal-selected-empty">None selected.</div>
+                )}
+              </div>
             </div>
             <div className="modal-footer">
-              <button 
-                className="cancel-btn"
-                onClick={() => setShowCreateModal(false)}
-              >
-                Cancel
-              </button>
-              <button 
-                className="create-btn"
-                onClick={handleCreateList}
-                disabled={!newListName.trim()}
-              >
-                Create List
-              </button>
+              <button className="cancel-btn" onClick={() => setShowEditVendorsModal(false)}>Cancel</button>
+              <button className="save-btn" onClick={handleSaveVendors} disabled={editSelectedVendors.length === 0}>Save</button>
             </div>
           </div>
         </div>

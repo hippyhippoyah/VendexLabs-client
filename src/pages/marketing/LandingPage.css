@@ -4,6 +4,7 @@
   color: var(--text);
   display: flex;
   flex-direction: column;
+  font-family: 'PP Mori', 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
 
 .landing-topnav {

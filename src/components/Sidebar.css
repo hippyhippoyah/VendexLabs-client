@@ -20,16 +20,28 @@
   gap: 0.75rem;
 }
 
-.sidebar-logo {
+.sidebar-logo-container {
   width: 32px;
   height: 32px;
+  background-color: #f3f4f6;
+  border-radius: 50%;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sidebar-logo {
+  width: 100%;
+  height: 100%;
   object-fit: contain;
 }
 
 .sidebar-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #111827;
+  color: #374151;
   margin: 0;
 }
 
@@ -106,17 +118,86 @@
   margin-bottom: 0.25rem;
 }
 
+/* Expandable nav item styles */
+.nav-item-expandable {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.nav-item-expandable .nav-link {
+  flex: 1;
+}
+
+.nav-chevron {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  margin-right: 0.75rem;
+  cursor: pointer;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.nav-chevron:hover {
+  color: #374151;
+}
+
+.nav-chevron:focus {
+  outline: none;
+  color: #2563eb;
+}
+
+/* Sub-nav list styles */
+.nav-sub-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem 0 0.25rem 0;
+  background-color: #f9fafb;
+  border-radius: 0 0 6px 6px;
+  margin-left: 0.75rem;
+  margin-right: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.nav-sub-item {
+  margin-bottom: 0;
+}
+
+.nav-sub-link {
+  padding-left: 3rem !important;
+  padding-top: 0.625rem !important;
+  padding-bottom: 0.625rem !important;
+  font-size: 0.8125rem !important;
+  margin: 0 0.5rem !important;
+}
+
+.nav-sub-link:hover {
+  background-color: #f3f4f6;
+}
+
+.nav-sub-link.active {
+  background-color: #dbeafe;
+  color: #0284c7;
+  font-weight: 600;
+}
+
 .nav-link {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1.25rem;
-  color: #6b7280;
+  color: #374151;
   text-decoration: none;
   font-weight: 500;
   font-size: 0.875rem;
   transition: all 0.2s ease;
-  border-left: 3px solid transparent;
+  border-radius: 6px;
+  margin: 0 0.75rem;
 }
 
 .nav-link:hover {
@@ -125,15 +206,25 @@
 }
 
 .nav-link.active {
-  background-color: #eff6ff;
-  color: #2563eb;
-  border-left-color: #2563eb;
+  background-color: #e0f2fe;
+  color: #0284c7;
+  border-radius: 6px;
 }
 
 .nav-icon {
   font-size: 1.125rem;
   width: 20px;
+  height: 20px;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nav-icon svg {
+  width: 100%;
+  height: 100%;
 }
 
 .nav-label {
