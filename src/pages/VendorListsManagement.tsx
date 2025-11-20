@@ -44,7 +44,7 @@ const VendorListsManagement = () => {
 
   useEffect(() => {
     // Use first list (master-list) if available
-    if (vendorLists.length > 0 && selectedAccount?.id) {
+    if (vendorLists.length > 0 && selectedAccount?.id && vendorLists[0].name === 'master-list') {
       setSelectedList(vendorLists[0]);
     } else {
       setSelectedList(null);

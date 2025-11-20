@@ -1,4 +1,4 @@
-import { VendorListUsersResponse, UsersByAccountIdResponse, AllAccountsResponse, AccountSubscriptionsResponse, VendorOverview, IndividualSubscriptionsResponse, VendorAnalysis, VendorAssessment, VendorAssessmentsResponse } from './responseTypes';
+import { VendorListUsersResponse, UsersByAccountIdResponse, AllAccountsResponse, AccountSubscriptionsResponse, VendorOverview, VendorAnalysis, VendorAssessment, VendorAssessmentsResponse } from './responseTypes';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL
 
@@ -19,58 +19,6 @@ export const getEmailClaim = () => {
     const decodedPayload = JSON.parse(atob(payload));
     console.log("Decoded Payload:", decodedPayload);
     return decodedPayload.email;
-}
-
-export const getIndividualSubscriptions = async (): Promise<IndividualSubscriptionsResponse> => {
-    const accessToken = getIdToken();
-    const response = await fetch(`${API_BASE_URL}/individual-subscriptions`, {
-        method: "GET",
-        headers: {
-            "Authorization": `Bearer ${accessToken}`,
-            "Content-Type": "application/json"
-        }
-    });
-
-    if (!response.ok) {
-        throw new Error("Network response was not ok");
-    }
-
-    return await response.json();
-}
-
-export const deleteIndividualSubscriptions = async (vendors: string[]): Promise<IndividualSubscriptionsResponse> => {
-    const accessToken = getIdToken();
-    const response = await fetch(`${API_BASE_URL}/individual-subscriptions`, {
-        method: "DELETE",
-        headers: {
-            "Authorization": `Bearer ${accessToken}`,
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ vendors })
-    });
-
-    if (!response.ok) {
-        throw new Error("Network response was not ok");
-    }
-
-    return await response.json();
-}
-export const createIndividualSubscription = async (vendors: string[]): Promise<IndividualSubscriptionsResponse> => {
-    const accessToken = getIdToken();
-    const response = await fetch(`${API_BASE_URL}/individual-subscriptions`, {
-        method: "POST",
-        headers: {
-            "Authorization": `Bearer ${accessToken}`,
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ vendors })
-    });
-
-    if (!response.ok) {
-        throw new Error("Network response was not ok");
-    }
-
-    return await response.json();
 }
 
 export const getAllVendors = async (): Promise<VendorOverview[]> => {

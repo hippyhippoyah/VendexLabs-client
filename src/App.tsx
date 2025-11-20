@@ -16,10 +16,8 @@ import VendorPrivacyControls from "./pages/VendorInfoPages/VendorPrivacyControls
 import VendorBusinessMaturity from "./pages/VendorInfoPages/VendorBusinessMaturity.tsx";
 import VendorSecurityInstances from "./pages/VendorInfoPages/VendorSecurityInstances.jsx";
 import VendorAssessmentTracking from "./pages/VendorInfoPages/VendorAssessmentTracking.tsx";
-import IndividualSubscriptions from "./pages/IndividualSubscriptions.tsx";
 import './App.css';
 import LandingPage from "./pages/marketing/LandingPage.tsx";
-import React from 'react';
 
 function App() {
   const auth = useAuth();
@@ -65,7 +63,6 @@ function App() {
                 } />
                 <Route path="/vendors" element={<VendorListsManagement />} />
                 <Route path="/management" element={<OrgManager />} />
-                <Route path="/individual-subscriptions" element={<IndividualSubscriptions />} />
               </Routes>
             </main>
           </div>

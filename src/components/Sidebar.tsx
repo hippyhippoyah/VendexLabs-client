@@ -235,18 +235,6 @@ const Sidebar: React.FC = () => {
           </>
         ) : (
           <ul className="nav-list">
-            {/* Individual Subscriptions NavItem (only show when Individual is selected) */}
-            {selectedAccount?.id === 'individual' && (
-              <li className="nav-item">
-                <Link 
-                  to="/individual-subscriptions" 
-                  className={`nav-link ${location.pathname === '/individual-subscriptions' ? 'active' : ''}`}
-                >
-                  <span className="nav-icon"><DashboardIcon /></span>
-                  <span className="nav-label">Individual Subscriptions</span>
-                </Link>
-              </li>
-            )}
             {/* Vendors expandable section */}
             <li className="nav-item">
               <div className="nav-item-expandable">

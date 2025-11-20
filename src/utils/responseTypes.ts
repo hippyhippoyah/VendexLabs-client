@@ -38,10 +38,6 @@ export type VendorOverview = {
   logo: string;
   website_url: string;
 };
-export type IndividualSubscriptionsResponse = {
-  email: string;
-  vendors: { name: string }[];
-};
 
 export type VendorAnalysis = {
   id: string;

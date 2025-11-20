@@ -1,4 +1,3 @@
-import React from 'react';
 import { useVendor } from '../contexts/VendorContext.tsx';
 import './VendorInfo.css';
 import { VendorAnalysis } from '../utils/responseTypes.ts';
