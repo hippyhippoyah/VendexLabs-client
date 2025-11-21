@@ -1,4 +1,4 @@
-import { VendorListUsersResponse, UsersByAccountIdResponse, AllAccountsResponse, AccountSubscriptionsResponse, VendorOverview, VendorAnalysis, VendorAssessment, VendorAssessmentsResponse } from './responseTypes';
+import { VendorListUsersResponse, UsersByAccountIdResponse, AllAccountsResponse, AccountSubscriptionsResponse, VendorOverview, VendorAnalysis, VendorAssessment, VendorAssessmentsResponse, RSSFeed, DashboardMetrics } from './responseTypes';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL
 
@@ -342,5 +342,98 @@ export const deleteVendorAssessment = async (
     throw new Error("Network response was not ok");
   }
   return await response.text();
+};
+
+// Dashboard API Functions
+export const getRecentIncidents = async (
+  accountId: string,
+  vendorListId: string | null,
+  limit: number = 5
+): Promise<RSSFeed[]> => {
+  const accessToken = getIdToken();
+  const params = new URLSearchParams({
+    'account-id': accountId,
+    'limit': limit.toString()
+  });
+  
+  if (vendorListId) {
+    params.append('vendor-list-id', vendorListId);
+  }
+  
+  const response = await fetch(`${API_BASE_URL}/metrics/recent-incidents?${params.toString()}`, {
+    method: "GET",
+    headers: {
+      "Authorization": `Bearer ${accessToken}`,
+      "Content-Type": "application/json"
+    }
+  });
+  
+  if (!response.ok) {
+    throw new Error("Network response was not ok");
+  }
+  
+  return await response.json();
+};
+
+
+// Get vendors from a vendor list (defaults to master-list)
+export const getVendorsFromList = async (
+  accountId: string,
+  vendorListName: string = 'master-list'
+): Promise<VendorOverview[]> => {
+  const accessToken = getIdToken();
+  const params = new URLSearchParams({
+    'account-id': accountId,
+    'vendor-list': vendorListName
+  });
+  
+  const response = await fetch(`${API_BASE_URL}/metrics/vendors-from-list?${params.toString()}`, {
+    method: "GET",
+    headers: {
+      "Authorization": `Bearer ${accessToken}`,
+      "Content-Type": "application/json"
+    }
+  });
+  
+  if (!response.ok) {
+    throw new Error("Network response was not ok");
+  }
+  
+  return await response.json();
+};
+
+export const getDashboardMetrics = async (
+  accountId: string,
+  vendorListId: string | null
+): Promise<DashboardMetrics> => {
+  const accessToken = getIdToken();
+  const params = new URLSearchParams({
+    'account-id': accountId
+  });
+  
+  if (vendorListId) {
+    params.append('vendor-list-id', vendorListId);
+  }
+  
+  const response = await fetch(`${API_BASE_URL}/metrics/dashboard?${params.toString()}`, {
+    method: "GET",
+    headers: {
+      "Authorization": `Bearer ${accessToken}`,
+      "Content-Type": "application/json"
+    }
+  });
+  
+  if (!response.ok) {
+    throw new Error("Network response was not ok");
+  }
+  
+  return await response.json();
+};
+
+export const getAISummary = async (
+  _accountId: string,
+  _vendorListId: string | null
+): Promise<string> => {
+  return "FEATURE IN PROGRESS";
 };
 

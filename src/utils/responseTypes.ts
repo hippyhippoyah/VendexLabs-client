@@ -92,3 +92,27 @@ export type VendorAssessment = {
 export type VendorAssessmentsResponse = {
   assessments: VendorAssessment[];
 };
+
+export type RSSFeed = {
+  id: string;
+  title: string;
+  vendor: string | null;
+  vendor_name: string;
+  product: string;
+  published: string; // ISO date string
+  exploits: string;
+  summary: string;
+  url: string;
+  img: string | null;
+  incident_type: string | null;
+  affected_service: string | null;
+  potentially_impacted_data: string | null;
+  status: string | null;
+  source: string | null;
+};
+
+export type DashboardMetrics = {
+  activeAssessments: number;
+  totalVendors: number;
+  followedVendors: number;
+};

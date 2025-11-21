@@ -62,7 +62,7 @@ const SupportedVendors = () => {
       <header className="page-header">
         <h1>Supported Vendors</h1>
         <p className="page-subtitle">
-          View and add vendors with prebuilt integrations and templates
+          View and add 150+ vendors with prebuilt integrations and templates
         </p>
         <div className="search-container">
           <input

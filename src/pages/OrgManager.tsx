@@ -79,6 +79,42 @@ function OrgManager() {
     }
   };
 
+  // Check if this is a personal account
+  const isPersonalAccount = selectedAccount && (
+    selectedAccount.id === 'individual' || 
+    (typeof selectedAccount === 'string' && selectedAccount === 'individual')
+  );
+
+  if (isPersonalAccount) {
+    return (
+      <div className="vendor-info-container">
+        <div className="vendor-analysis-card">
+          <div className="company-profile-header">
+            <h2 className="vendor-section-title">Organization User Manager</h2>
+          </div>
+          <div className="company-info-grid">
+            <div className="company-main-info">
+              <div className="company-details">
+                <div className="vendor-info-row" style={{ 
+                  padding: '2rem', 
+                  textAlign: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '1rem'
+                }}>
+                  <p style={{ fontSize: '1.1rem', color: '#6B7280', margin: 0 }}>
+                    Management is not supported for Personal Accounts. Please upgrade to Enterprise to access this feature.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="vendor-info-container">
       <div className="vendor-analysis-card">
