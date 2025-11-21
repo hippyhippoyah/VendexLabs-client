@@ -109,38 +109,12 @@ function App() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // First check if we have stored tokens (works for both regular and OAuth sign-in)
-        const storedTokens = localStorage.getItem('cognito_tokens');
-        if (storedTokens) {
-          // Verify tokens are still valid by checking with CognitoUserPool
-          try {
-            const user = getCurrentUser();
-            if (user) {
-              await getSession();
-              setIsAuthenticated(true);
-            } else {
-              // Tokens exist but getCurrentUser failed - might be OAuth tokens
-              // Try to parse and validate the stored tokens
-              const tokens = JSON.parse(storedTokens);
-              if (tokens.idToken && tokens.accessToken) {
-                setIsAuthenticated(true);
-              } else {
-                setIsAuthenticated(false);
-              }
-            }
-          } catch (e) {
-            // If getCurrentUser/getSession fails but we have tokens, assume authenticated
-            setIsAuthenticated(true);
-          }
+        const user = getCurrentUser();
+        if (user) {
+          await getSession();
+          setIsAuthenticated(true);
         } else {
-          // No stored tokens, check CognitoUserPool
-          const user = getCurrentUser();
-          if (user) {
-            await getSession();
-            setIsAuthenticated(true);
-          } else {
-            setIsAuthenticated(false);
-          }
+          setIsAuthenticated(false);
         }
       } catch (error) {
         setIsAuthenticated(false);
@@ -160,32 +134,9 @@ function App() {
     navigate('/sign-up');
   };
 
-  const handleSignInSuccess = async () => {
-    // Force a re-check of authentication state
-    try {
-      // Check if we have tokens stored first (more reliable for OAuth)
-      const storedTokens = localStorage.getItem('cognito_tokens');
-      if (storedTokens) {
-        setIsAuthenticated(true);
-        navigate('/');
-        return;
-      }
-      
-      // Fallback to CognitoUserPool check
-      const { getCurrentUser, getSession } = await import('./utils/cognitoAuth');
-      const user = getCurrentUser();
-      if (user) {
-        await getSession();
-        setIsAuthenticated(true);
-        navigate('/');
-      } else {
-        // If both fail, reload the page to re-check auth state
-        window.location.href = '/';
-      }
-    } catch (error) {
-      // If all else fails, reload to re-check auth state
-      window.location.href = '/';
-    }
+  const handleSignInSuccess = () => {
+    setIsAuthenticated(true);
+    navigate('/');
   };
 
   if (isLoading) {

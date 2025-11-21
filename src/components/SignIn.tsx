@@ -30,10 +30,8 @@ function SignIn({ onSignInSuccess, onBackToLanding }: SignInProps) {
         const { signInWithGoogle } = await import('../utils/cognitoAuth');
         const tokens = await signInWithGoogle();
         storeTokens(tokens);
-        
-        // Small delay to ensure tokens are stored before checking auth state
+        // Small delay to ensure tokens are stored before navigation
         await new Promise(resolve => setTimeout(resolve, 100));
-        
         onSignInSuccess();
       } catch (err: any) {
         let errorMessage = 'Google sign in failed. Please try again.';
