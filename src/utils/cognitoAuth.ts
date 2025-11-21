@@ -334,15 +334,28 @@ const exchangeCodeForTokens = async (
   // Also store in CognitoUserPool format for getCurrentUser() to work
   try {
     const idTokenPayload = JSON.parse(atob(tokens.idToken.split('.')[1]));
-    const username = idTokenPayload['cognito:username'] || idTokenPayload.sub || idTokenPayload.email;
+    // Try multiple possible username fields
+    const username = idTokenPayload['cognito:username'] || 
+                     idTokenPayload['cognito:preferred_username'] ||
+                     idTokenPayload.sub || 
+                     idTokenPayload.email ||
+                     idTokenPayload['email'];
     
     if (username) {
       // Store user info in localStorage for CognitoUserPool
-      localStorage.setItem(`CognitoIdentityServiceProvider.${clientId}.LastAuthUser`, username);
-      localStorage.setItem(`CognitoIdentityServiceProvider.${clientId}.${username}.idToken`, tokens.idToken);
-      localStorage.setItem(`CognitoIdentityServiceProvider.${clientId}.${username}.accessToken`, tokens.accessToken);
-      localStorage.setItem(`CognitoIdentityServiceProvider.${clientId}.${username}.refreshToken`, tokens.refreshToken);
-      localStorage.setItem(`CognitoIdentityServiceProvider.${clientId}.${username}.clockDrift`, '0');
+      // Use the exact format that CognitoUserPool expects
+      const prefix = `CognitoIdentityServiceProvider.${clientId}`;
+      localStorage.setItem(`${prefix}.LastAuthUser`, username);
+      localStorage.setItem(`${prefix}.${username}.idToken`, tokens.idToken);
+      localStorage.setItem(`${prefix}.${username}.accessToken`, tokens.accessToken);
+      localStorage.setItem(`${prefix}.${username}.refreshToken`, tokens.refreshToken);
+      localStorage.setItem(`${prefix}.${username}.clockDrift`, '0');
+      
+      // Also store token expiration times if available
+      if (idTokenPayload.exp) {
+        const expiresAt = idTokenPayload.exp * 1000; // Convert to milliseconds
+        localStorage.setItem(`${prefix}.${username}.idToken.expiresAt`, expiresAt.toString());
+      }
     }
   } catch (e) {
     console.warn('Could not store user info for CognitoUserPool:', e);
