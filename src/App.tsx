@@ -1,7 +1,9 @@
-import { useAuth } from "react-oidc-context";
-import { Routes, Route } from "react-router-dom";
-import vendexLogo from './assets/logo.png';
+import { useState, useEffect } from "react";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import Sidebar from "./components/Sidebar.tsx";
+import SignIn from "./components/SignIn.tsx";
+import SignUp from "./components/SignUp.tsx";
+import LandingPage from "./pages/marketing/LandingPage.tsx";
 import { AccountProvider } from "./contexts/AccountContext.tsx";
 import { VendorProvider } from "./contexts/VendorContext.tsx";
 import { VendorListProvider } from "./contexts/VendorListContext";
@@ -17,62 +19,143 @@ import VendorBusinessMaturity from "./pages/VendorInfoPages/VendorBusinessMaturi
 import VendorSecurityInstances from "./pages/VendorInfoPages/VendorSecurityInstances.jsx";
 import VendorAssessmentTracking from "./pages/VendorInfoPages/VendorAssessmentTracking.tsx";
 import './App.css';
-import LandingPage from "./pages/marketing/LandingPage.tsx";
+import { getSession, signOut as cognitoSignOut, getCurrentUser } from "./utils/cognitoAuth";
 
-function App() {
-  const auth = useAuth();
+function ProtectedRoutes() {
+  const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Check if user is already authenticated on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const user = getCurrentUser();
+        if (user) {
+          // Try to get a valid session
+          await getSession();
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
 
   const signOutRedirect = () => {
-    auth.removeUser();
-    const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
-    const logoutUri = import.meta.env.VITE_COGNITO_REDIRECT_URI;
-    const cognitoDomain = import.meta.env.VITE_COGNITO_DOMAIN;
-    window.location.href = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
+    cognitoSignOut();
+    setIsAuthenticated(false);
+    navigate('/');
   };
 
-  if (auth.isLoading) {
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      navigate('/');
+    }
+  }, [isLoading, isAuthenticated, navigate]);
+
+  if (isLoading) {
     return <div>Loading...</div>;
   }
 
-  if (auth.error) {
-    return <div>Encountering error... {auth.error.message}</div>;
-  }
-
-  if (auth.isAuthenticated) {
-    return (
-      <AccountProvider>
-        <VendorListProvider>
-          <div className="app-layout">
-            <Sidebar />
-            <main className="main-content">
-              <Routes>
-                <Route path="/" element={<Home onSignOut={signOutRedirect} />} />
-                <Route path="/vendors/supported" element={<SupportedVendors />} />
-                <Route path="/vendors/alerts" element={<VendorAlerts />} />
-                <Route path="/vendors/:vendor_name/*" element={
-                  <VendorProvider>
-                    <Routes>
-                      <Route index element={<VendorInfo />} />
-                      <Route path="general-compliance" element={<VendorGeneralCompliance />} />
-                      <Route path="privacy-controls" element={<VendorPrivacyControls />} />
-                      <Route path="business-maturity" element={<VendorBusinessMaturity />} />
-                      <Route path="security-instances" element={<VendorSecurityInstances />} />
-                      <Route path="assessment-tracking" element={<VendorAssessmentTracking />} />
-                    </Routes>
-                  </VendorProvider>
-                } />
-                <Route path="/vendors" element={<VendorListsManagement />} />
-                <Route path="/management" element={<OrgManager />} />
-              </Routes>
-            </main>
-          </div>
-        </VendorListProvider>
-      </AccountProvider>
-    );
+  if (!isAuthenticated) {
+    return null;
   }
 
   return (
-    <LandingPage onSignIn={() => auth.signinRedirect()} />
+    <AccountProvider>
+      <VendorListProvider>
+        <div className="app-layout">
+          <Sidebar />
+          <main className="main-content">
+            <Routes>
+              <Route path="/" element={<Home onSignOut={signOutRedirect} />} />
+              <Route path="/vendors/supported" element={<SupportedVendors />} />
+              <Route path="/vendors/alerts" element={<VendorAlerts />} />
+              <Route path="/vendors/:vendor_name/*" element={
+                <VendorProvider>
+                  <Routes>
+                    <Route index element={<VendorInfo />} />
+                    <Route path="general-compliance" element={<VendorGeneralCompliance />} />
+                    <Route path="privacy-controls" element={<VendorPrivacyControls />} />
+                    <Route path="business-maturity" element={<VendorBusinessMaturity />} />
+                    <Route path="security-instances" element={<VendorSecurityInstances />} />
+                    <Route path="assessment-tracking" element={<VendorAssessmentTracking />} />
+                  </Routes>
+                </VendorProvider>
+              } />
+              <Route path="/vendors" element={<VendorListsManagement />} />
+              <Route path="/management" element={<OrgManager />} />
+            </Routes>
+          </main>
+        </div>
+      </VendorListProvider>
+    </AccountProvider>
+  );
+}
+
+function App() {
+  const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Check authentication status for public routes
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const user = getCurrentUser();
+        if (user) {
+          await getSession();
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  const handleSignInClick = () => {
+    navigate('/sign-in');
+  };
+
+  const handleSignUpClick = () => {
+    navigate('/sign-up');
+  };
+
+  const handleSignInSuccess = () => {
+    setIsAuthenticated(true);
+    navigate('/');
+  };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  // If authenticated, show protected routes
+  if (isAuthenticated) {
+    return <ProtectedRoutes />;
+  }
+
+  // If not authenticated, show public routes
+  return (
+    <Routes>
+      <Route path="/" element={<LandingPage onSignIn={handleSignInClick} onSignUp={handleSignUpClick} />} />
+      <Route path="/sign-in" element={<SignIn onSignInSuccess={handleSignInSuccess} onBackToLanding={() => navigate('/')} />} />
+      <Route path="/sign-up" element={<SignUp onSignUpSuccess={() => navigate('/sign-in')} onBackToSignIn={() => navigate('/sign-in')} />} />
+      <Route path="/*" element={<ProtectedRoutes />} />
+    </Routes>
   );
 }
 

@@ -5,9 +5,25 @@ const API_BASE_URL = import.meta.env.VITE_API_URL
 const getIdToken = () => {
     const sessionStorageKeys = Object.keys(sessionStorage);
     const oidcKey = sessionStorageKeys.find(key => key.startsWith("oidc.user:https://cognito-idp."));
-    const oidcContext = JSON.parse(sessionStorage.getItem(oidcKey ?? "") || "{}");
-    const idToken = oidcContext?.id_token;
-    return idToken;
+    if (oidcKey) {
+        const oidcContext = JSON.parse(sessionStorage.getItem(oidcKey) || "{}");
+        if (oidcContext?.id_token) {
+            return oidcContext.id_token;
+        }
+    }
+    
+    // Fallback: try to get token from localStorage (direct Cognito auth format)
+    const storedTokens = localStorage.getItem('cognito_tokens');
+    if (storedTokens) {
+        try {
+            const tokens = JSON.parse(storedTokens);
+            return tokens.idToken;
+        } catch (e) {
+            console.error('Error parsing stored tokens:', e);
+        }
+    }
+    
+    return null;
 };
 
 export const getEmailClaim = () => {
