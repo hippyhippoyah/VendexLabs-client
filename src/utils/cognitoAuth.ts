@@ -146,62 +146,19 @@ export const signOut = () => {
 
 export const getCurrentUser = (): CognitoUser | null => {
   const userPool = getUserPool();
-  const user = userPool.getCurrentUser();
-  
-  // If CognitoUserPool doesn't find a user, check if we have tokens stored
-  // This handles OAuth flow where tokens are stored manually
-  if (!user) {
-    const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
-    const lastAuthUser = localStorage.getItem(`CognitoIdentityServiceProvider.${clientId}.LastAuthUser`);
-    if (lastAuthUser) {
-      // Create a CognitoUser instance manually
-      return new CognitoUser({
-        Username: lastAuthUser,
-        Pool: userPool,
-      });
-    }
-  }
-  
-  return user;
+  return userPool.getCurrentUser();
 };
 
 export const getSession = (): Promise<AuthTokens> => {
   return new Promise((resolve, reject) => {
     const cognitoUser = getCurrentUser();
     if (!cognitoUser) {
-      // Fallback: check if we have tokens stored directly
-      const storedTokens = localStorage.getItem('cognito_tokens');
-      if (storedTokens) {
-        try {
-          const tokens = JSON.parse(storedTokens);
-          // Verify tokens are still valid (basic check)
-          if (tokens.idToken && tokens.accessToken) {
-            resolve(tokens);
-            return;
-          }
-        } catch (e) {
-          // Invalid stored tokens, continue to reject
-        }
-      }
       reject(new Error('No user session found'));
       return;
     }
 
     cognitoUser.getSession((err: Error | null, session: any) => {
-      if (err || !session || !session.isValid()) {
-        // Fallback: check if we have tokens stored directly
-        const storedTokens = localStorage.getItem('cognito_tokens');
-        if (storedTokens) {
-          try {
-            const tokens = JSON.parse(storedTokens);
-            if (tokens.idToken && tokens.accessToken) {
-              resolve(tokens);
-              return;
-            }
-          } catch (e) {
-            // Invalid stored tokens
-          }
-        }
+      if (err || !session.isValid()) {
         reject(err || new Error('Invalid session'));
         return;
       }
