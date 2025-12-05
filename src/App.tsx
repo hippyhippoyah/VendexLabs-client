@@ -18,6 +18,7 @@ import VendorPrivacyControls from "./pages/VendorInfoPages/VendorPrivacyControls
 import VendorBusinessMaturity from "./pages/VendorInfoPages/VendorBusinessMaturity.tsx";
 import VendorSecurityInstances from "./pages/VendorInfoPages/VendorSecurityInstances.jsx";
 import VendorAssessmentTracking from "./pages/VendorInfoPages/VendorAssessmentTracking.tsx";
+import VendorAssessments from "./pages/VendorAssessments.tsx";
 import './App.css';
 import { getSession, signOut as cognitoSignOut, getCurrentUser } from "./utils/cognitoAuth";
 
@@ -91,6 +92,7 @@ function ProtectedRoutes() {
                 </VendorProvider>
               } />
               <Route path="/vendors" element={<VendorListsManagement />} />
+              <Route path="/assessments" element={<VendorAssessments />} />
               <Route path="/management" element={<OrgManager />} />
             </Routes>
           </main>
