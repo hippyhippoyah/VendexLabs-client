@@ -16,13 +16,13 @@ import VendorAlerts from "./pages/VendorAlerts.tsx";
 import VendorGeneralCompliance from "./pages/VendorInfoPages/VendorGeneralCompliance.tsx";
 import VendorPrivacyControls from "./pages/VendorInfoPages/VendorPrivacyControls.tsx";
 import VendorBusinessMaturity from "./pages/VendorInfoPages/VendorBusinessMaturity.tsx";
-import VendorSecurityInstances from "./pages/VendorInfoPages/VendorSecurityInstances.jsx";
+// import VendorSecurityInstances from "./pages/VendorInfoPages/VendorSecurityInstances.jsx";
 import VendorAssessmentTracking from "./pages/VendorInfoPages/VendorAssessmentTracking.tsx";
-import VendorAssessments from "./pages/VendorAssessments.tsx";
+// import VendorAssessments from "./pages/VendorAssessments.tsx";
 import './App.css';
-import { getSession, signOut as cognitoSignOut, getCurrentUser } from "./utils/cognitoAuth";
+import { getSession, signOut as cognitoSignOut, getCurrentUser, hasStoredTokens } from "./utils/cognitoAuth";
 
-function ProtectedRoutes() {
+function ProtectedRoutes({ onSignOut }: { onSignOut: () => void }) {
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -30,28 +30,39 @@ function ProtectedRoutes() {
   // Check if user is already authenticated on mount
   useEffect(() => {
     const checkAuth = async () => {
-      try {
-        const user = getCurrentUser();
-        if (user) {
-          // Try to get a valid session
-          await getSession();
-          setIsAuthenticated(true);
-        } else {
-          setIsAuthenticated(false);
-        }
-      } catch (error) {
-        setIsAuthenticated(false);
-      } finally {
+      if (hasStoredTokens()) {
+        setIsAuthenticated(true);
         setIsLoading(false);
+        // Validate in background
+        try {
+          const user = getCurrentUser();
+          if (user) await getSession();
+        } catch (error) {
+          console.warn('Session validation failed:', error);
+        }
+      } else {
+        try {
+          const user = getCurrentUser();
+          if (user) {
+            await getSession();
+            setIsAuthenticated(true);
+          } else {
+            setIsAuthenticated(false);
+          }
+        } catch (error) {
+          setIsAuthenticated(false);
+        } finally {
+          setIsLoading(false);
+        }
       }
     };
-
     checkAuth();
   }, []);
 
   const signOutRedirect = () => {
     cognitoSignOut();
     setIsAuthenticated(false);
+    onSignOut(); // Notify parent component to update its auth state
     navigate('/');
   };
 
@@ -86,13 +97,13 @@ function ProtectedRoutes() {
                     <Route path="general-compliance" element={<VendorGeneralCompliance />} />
                     <Route path="privacy-controls" element={<VendorPrivacyControls />} />
                     <Route path="business-maturity" element={<VendorBusinessMaturity />} />
-                    <Route path="security-instances" element={<VendorSecurityInstances />} />
+                    {/* <Route path="security-instances" element={<VendorSecurityInstances />} /> */}
                     <Route path="assessment-tracking" element={<VendorAssessmentTracking />} />
                   </Routes>
                 </VendorProvider>
               } />
               <Route path="/vendors" element={<VendorListsManagement />} />
-              <Route path="/assessments" element={<VendorAssessments />} />
+              {/* <Route path="/assessments" element={<VendorAssessments />} /> */}
               <Route path="/management" element={<OrgManager />} />
             </Routes>
           </main>
@@ -110,21 +121,32 @@ function App() {
   // Check authentication status for public routes
   useEffect(() => {
     const checkAuth = async () => {
-      try {
-        const user = getCurrentUser();
-        if (user) {
-          await getSession();
-          setIsAuthenticated(true);
-        } else {
-          setIsAuthenticated(false);
-        }
-      } catch (error) {
-        setIsAuthenticated(false);
-      } finally {
+      if (hasStoredTokens()) {
+        setIsAuthenticated(true);
         setIsLoading(false);
+        // Validate in background
+        try {
+          const user = getCurrentUser();
+          if (user) await getSession();
+        } catch (error) {
+          console.warn('Session validation failed:', error);
+        }
+      } else {
+        try {
+          const user = getCurrentUser();
+          if (user) {
+            await getSession();
+            setIsAuthenticated(true);
+          } else {
+            setIsAuthenticated(false);
+          }
+        } catch (error) {
+          setIsAuthenticated(false);
+        } finally {
+          setIsLoading(false);
+        }
       }
     };
-
     checkAuth();
   }, []);
 
@@ -132,13 +154,13 @@ function App() {
     navigate('/sign-in');
   };
 
-  const handleSignUpClick = () => {
-    navigate('/sign-up');
-  };
-
   const handleSignInSuccess = () => {
     setIsAuthenticated(true);
     navigate('/');
+  };
+
+  const handleSignOut = () => {
+    setIsAuthenticated(false);
   };
 
   if (isLoading) {
@@ -147,16 +169,16 @@ function App() {
 
   // If authenticated, show protected routes
   if (isAuthenticated) {
-    return <ProtectedRoutes />;
+    return <ProtectedRoutes onSignOut={handleSignOut} />;
   }
 
   // If not authenticated, show public routes
   return (
     <Routes>
-      <Route path="/" element={<LandingPage onSignIn={handleSignInClick} onSignUp={handleSignUpClick} />} />
+      <Route path="/" element={<LandingPage onSignIn={handleSignInClick} />} />
       <Route path="/sign-in" element={<SignIn onSignInSuccess={handleSignInSuccess} onBackToLanding={() => navigate('/')} />} />
       <Route path="/sign-up" element={<SignUp onSignUpSuccess={() => navigate('/sign-in')} onBackToSignIn={() => navigate('/sign-in')} />} />
-      <Route path="/*" element={<ProtectedRoutes />} />
+      <Route path="/*" element={<ProtectedRoutes onSignOut={handleSignOut} />} />
     </Routes>
   );
 }

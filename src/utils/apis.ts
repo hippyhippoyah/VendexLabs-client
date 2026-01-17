@@ -4,7 +4,11 @@ const API_BASE_URL = import.meta.env.VITE_API_URL
 
 const getIdToken = () => {
     const sessionStorageKeys = Object.keys(sessionStorage);
-    const oidcKey = sessionStorageKeys.find(key => key.startsWith("oidc.user:https://cognito-idp."));
+    // Look for OIDC keys with auth.vendexlabs.com or cognito-idp (for backward compatibility)
+    const oidcKey = sessionStorageKeys.find(key => 
+        key.startsWith("oidc.user:https://auth.vendexlabs.com") || 
+        key.startsWith("oidc.user:https://cognito-idp.")
+    );
     if (oidcKey) {
         const oidcContext = JSON.parse(sessionStorage.getItem(oidcKey) || "{}");
         if (oidcContext?.id_token) {

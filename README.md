@@ -12,10 +12,11 @@ You will need access to access the APIS
 2. **Create a `.env` file** in the root of the project with the following contents (replace values as needed):
 
     ```
-    VITE_API_URL= ???
-    VITE_COGNITO_AUTHORITY= ???
+    VITE_API_URL= https://api.vendexlabs.com
+    VITE_COGNITO_AUTHORITY=https://auth.vendexlabs.com
     VITE_COGNITO_CLIENT_ID= ???
-    VITE_COGNITO_DOMAIN= ???
+    VITE_COGNITO_DOMAIN=https://auth.vendexlabs.com
+    VITE_COGNITO_USER_POOL_ID= ???
     ```
 
 3. **Install dependencies:**

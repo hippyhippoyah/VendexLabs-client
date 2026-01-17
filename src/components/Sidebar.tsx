@@ -39,8 +39,10 @@ const Sidebar: React.FC = () => {
   // Icon components
   const DashboardIcon = () => (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M10 10C11.3807 10 12.5 8.88071 12.5 7.5C12.5 6.11929 11.3807 5 10 5C8.61929 5 7.5 6.11929 7.5 7.5C7.5 8.88071 8.61929 10 10 10Z" fill="currentColor"/>
-      <path d="M10 11.25C7.92893 11.25 6.25 12.9289 6.25 15H13.75C13.75 12.9289 12.0711 11.25 10 11.25Z" fill="currentColor"/>
+      <rect x="3" y="3" width="6" height="6" rx="1" fill="currentColor" opacity="0.9"/>
+      <rect x="11" y="3" width="6" height="4" rx="1" fill="currentColor" opacity="0.9"/>
+      <rect x="3" y="11" width="6" height="6" rx="1" fill="currentColor" opacity="0.9"/>
+      <rect x="11" y="9" width="6" height="8" rx="1" fill="currentColor" opacity="0.9"/>
     </svg>
   );
 
@@ -92,7 +94,7 @@ const Sidebar: React.FC = () => {
 
   const navItems = [
     { path: '/', label: 'Dashboard', icon: DashboardIcon },
-    { path: '/assessments', label: 'Assessments', icon: AssessmentsIcon },
+    // { path: '/assessments', label: 'Assessments', icon: AssessmentsIcon },
     { path: '/management', label: 'Management', icon: SettingsIcon },
   ];
 
@@ -235,7 +237,23 @@ const Sidebar: React.FC = () => {
           </>
         ) : (
           <ul className="nav-list">
-            {/* Vendors expandable section */}
+            {navItems
+              .filter(item => item.path === '/')
+              .map((item) => {
+                const IconComponent = item.icon;
+                return (
+                  <li key={item.path} className="nav-item">
+                    <Link 
+                      to={item.path} 
+                      className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
+                    >
+                      <span className="nav-icon"><IconComponent /></span>
+                      <span className="nav-label">{item.label}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            {/* Vendors expandable section - rendered second */}
             <li className="nav-item">
               <div className="nav-item-expandable">
                 <Link 
@@ -280,24 +298,25 @@ const Sidebar: React.FC = () => {
                 </ul>
               )}
             </li>
-            {/* Other nav items, hide Account Manager and Vendor Lists Management when Individual is selected */}
-            {navItems.map((item) => {
-              if (selectedAccount?.id === 'individual' && (item.path === '/org-manager' || item.path === '/vendor-lists')) {
-                return null;
-              }
-              const IconComponent = item.icon;
-              return (
-                <li key={item.path} className="nav-item">
-                  <Link 
-                    to={item.path} 
-                    className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
-                  >
-                    <span className="nav-icon"><IconComponent /></span>
-                    <span className="nav-label">{item.label}</span>
-                  </Link>
-                </li>
-              );
-            })}
+            {navItems
+              .filter(item => item.path !== '/')
+              .map((item) => {
+                if (selectedAccount?.id === 'individual' && (item.path === '/org-manager' || item.path === '/vendor-lists')) {
+                  return null;
+                }
+                const IconComponent = item.icon;
+                return (
+                  <li key={item.path} className="nav-item">
+                    <Link 
+                      to={item.path} 
+                      className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
+                    >
+                      <span className="nav-icon"><IconComponent /></span>
+                      <span className="nav-label">{item.label}</span>
+                    </Link>
+                  </li>
+                );
+              })}
           </ul>
         )}
       </nav>

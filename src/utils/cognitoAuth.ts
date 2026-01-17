@@ -173,6 +173,11 @@ export const getSession = (): Promise<AuthTokens> => {
   });
 };
 
+// Fast synchronous check for stored tokens
+export const hasStoredTokens = (): boolean => {
+  return !!localStorage.getItem('cognito_tokens');
+};
+
 // Store tokens in a format compatible with existing code
 export const storeTokens = (tokens: AuthTokens) => {
   // Store in localStorage for persistence
@@ -194,24 +199,26 @@ export const storeTokens = (tokens: AuthTokens) => {
 };
 
 
-// Sign in with Google using OAuth2 popup flow with Cognito
+// Sign in with Google using OAuth2 popup flow
 export const signInWithGoogle = (): Promise<AuthTokens> => {
   return new Promise((resolve, reject) => {
-    const cognitoDomain = import.meta.env.VITE_COGNITO_DOMAIN;
+    const authDomain = import.meta.env.VITE_COGNITO_DOMAIN;
     const clientId = import.meta.env.VITE_COGNITO_CLIENT_ID;
     const redirectUri = window.location.origin;
 
-    if (!cognitoDomain || !clientId) {
-      reject(new Error('Missing Cognito configuration'));
+    if (!clientId) {
+      reject(new Error('Missing authentication configuration'));
       return;
     }
+
+    const authDomainUrl = authDomain
 
     // Generate a unique state for security
     const state = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
     sessionStorage.setItem('oauth_state', state);
 
     // Build OAuth URL with Google as identity provider
-    const authUrl = new URL(`${cognitoDomain}/oauth2/authorize`);
+    const authUrl = new URL(`${authDomainUrl}/oauth2/authorize`);
     authUrl.searchParams.set('client_id', clientId);
     authUrl.searchParams.set('response_type', 'code');
     authUrl.searchParams.set('scope', 'openid');
@@ -267,7 +274,7 @@ export const signInWithGoogle = (): Promise<AuthTokens> => {
               popup.close();
               clearInterval(checkPopup);
               sessionStorage.removeItem('oauth_state');
-              exchangeCodeForTokens(code, redirectUri, cognitoDomain, clientId)
+              exchangeCodeForTokens(code, redirectUri, authDomainUrl, clientId)
                 .then(resolve)
                 .catch(reject);
             }
@@ -296,10 +303,10 @@ export const signInWithGoogle = (): Promise<AuthTokens> => {
 const exchangeCodeForTokens = async (
   code: string,
   redirectUri: string,
-  cognitoDomain: string,
+  authDomain: string,
   clientId: string
 ): Promise<AuthTokens> => {
-  const tokenUrl = `${cognitoDomain}/oauth2/token`;
+  const tokenUrl = `${authDomain}/oauth2/token`;
   const params = new URLSearchParams({
     grant_type: 'authorization_code',
     client_id: clientId,
@@ -331,13 +338,13 @@ const exchangeCodeForTokens = async (
   // Store tokens
   storeTokens(tokens);
 
-  // Also store in CognitoUserPool format for getCurrentUser() to work
+  // Also store user info in localStorage for compatibility
   try {
     const idTokenPayload = JSON.parse(atob(tokens.idToken.split('.')[1]));
     const username = idTokenPayload['cognito:username'] || idTokenPayload.sub || idTokenPayload.email;
     
     if (username) {
-      // Store user info in localStorage for CognitoUserPool
+      // Store user info in localStorage for compatibility
       localStorage.setItem(`CognitoIdentityServiceProvider.${clientId}.LastAuthUser`, username);
       localStorage.setItem(`CognitoIdentityServiceProvider.${clientId}.${username}.idToken`, tokens.idToken);
       localStorage.setItem(`CognitoIdentityServiceProvider.${clientId}.${username}.accessToken`, tokens.accessToken);
@@ -345,7 +352,7 @@ const exchangeCodeForTokens = async (
       localStorage.setItem(`CognitoIdentityServiceProvider.${clientId}.${username}.clockDrift`, '0');
     }
   } catch (e) {
-    console.warn('Could not store user info for CognitoUserPool:', e);
+    console.warn('Could not store user info:', e);
   }
 
   return tokens;

@@ -364,7 +364,7 @@ function Home({ onSignOut }: { onSignOut: () => void }) {
           </div>
 
           {/* AI Summary Row */}
-          <div className="ai-summary-card">
+          {/* <div className="ai-summary-card">
             <h2>AI Daily Summary</h2>
             {aiSummary ? (
               <p className="ai-summary-text">{aiSummary}</p>
@@ -373,7 +373,7 @@ function Home({ onSignOut }: { onSignOut: () => void }) {
                 <p>No summary available</p>
               </div>
             )}
-          </div>
+          </div> */}
         </div>
       </main>
     </div>

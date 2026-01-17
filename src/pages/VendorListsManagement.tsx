@@ -301,7 +301,7 @@ const VendorListsManagement = () => {
                       </div>
                       <span
                         className="vendor-name-link"
-                        onClick={() => window.location.href = `/vendors/${encodeURIComponent(vendor)}`}
+                          onClick={() => window.location.href = `/vendors/${encodeURIComponent(vendor)}`}
                       >
                         {vendor}
                       </span>
