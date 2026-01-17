@@ -1,6 +1,6 @@
-import { useVendor } from '../contexts/VendorContext.tsx';
+import { useVendor } from '../../contexts/VendorContext.tsx';
 import './VendorInfo.css';
-import { VendorAnalysis } from '../utils/responseTypes.ts';
+import { VendorAnalysis } from '../../utils/responseTypes.ts';
 
 const VendorInfo = () => {
   const { vendorData, loading, error } = useVendor();

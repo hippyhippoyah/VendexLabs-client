@@ -1,8 +1,8 @@
 import React, { useState, useEffect, ChangeEvent } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import vendexLogo from '../assets/logo.png';
-import { getAllAccounts } from '../utils/apis.ts';
-import { useAccount } from '../contexts/AccountContext.tsx';
+import vendexLogo from '../../assets/logo.png';
+import { getAllAccounts } from '../../utils/apis.ts';
+import { useAccount } from '../../contexts/AccountContext.tsx';
 import './Sidebar.css';
 
 interface Account {

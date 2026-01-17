@@ -2,10 +2,10 @@
 
 
 import React, { useEffect, useState } from 'react';
-import { getAllAccounts, getUsersByAccountId, addUserToAccount, deleteUserFromAccount } from '../utils/apis';
-import { AllAccountsResponse, UsersByAccountIdResponse } from '../utils/responseTypes';
-import { useAccount } from '../contexts/AccountContext';
-import '../pages/VendorInfo.css';
+import { getAllAccounts, getUsersByAccountId, addUserToAccount, deleteUserFromAccount } from '../../utils/apis';
+import { AllAccountsResponse, UsersByAccountIdResponse } from '../../utils/responseTypes';
+import { useAccount } from '../../contexts/AccountContext';
+import '../VendorInfo/VendorInfo.css';
 
 function OrgManager() {
   const [accounts, setAccounts] = useState<AllAccountsResponse['accounts']>([]);

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { signIn, storeTokens } from '../utils/cognitoAuth';
-import vendexLogo from '../assets/logo.png';
+import { signIn, storeTokens } from '../../utils/cognitoAuth';
+import vendexLogo from '../../assets/logo.png';
 import './SignIn.css';
 
 interface SignInProps {
@@ -27,7 +27,7 @@ function SignIn({ onSignInSuccess, onBackToLanding }: SignInProps) {
       setError('');
       
       try {
-        const { signInWithGoogle } = await import('../utils/cognitoAuth');
+        const { signInWithGoogle } = await import('../../utils/cognitoAuth');
         const tokens = await signInWithGoogle();
         storeTokens(tokens);
         onSignInSuccess();

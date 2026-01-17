@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useAccount } from '../contexts/AccountContext.tsx';
-import { useVendorList } from '../contexts/VendorListContext.tsx';
-import { getEmailClaim, getRecentIncidents, getVendorsFromList, getDashboardMetrics, getAISummary } from '../utils/apis.ts';
-import { RSSFeed, VendorOverview, DashboardMetrics } from '../utils/responseTypes';
+import { useAccount } from '../../contexts/AccountContext.tsx';
+import { useVendorList } from '../../contexts/VendorListContext.tsx';
+import { getEmailClaim, getRecentIncidents, getVendorsFromList, getDashboardMetrics, getAISummary } from '../../utils/apis.ts';
+import { RSSFeed, VendorOverview, DashboardMetrics } from '../../utils/responseTypes.ts';
 import './Home.css';
 
 function Home({ onSignOut }: { onSignOut: () => void }) {

@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useAccount } from '../contexts/AccountContext.tsx';
+import { useAccount } from '../../contexts/AccountContext.tsx';
 import {
   getAllVendorLists,
   getAllVendors,
   saveVendorsToList,
   getOneVendor
-} from '../utils/apis.ts';
+} from '../../utils/apis.ts';
 import './VendorListsManagement.css';
-import { VendorOverview, VendorListUsersResponse, VendorList, VendorAnalysis } from '../utils/responseTypes.ts';
+import { VendorOverview, VendorListUsersResponse, VendorList, VendorAnalysis } from '../../utils/responseTypes.ts';
 
 interface VendorDetails {
   vendor: string;

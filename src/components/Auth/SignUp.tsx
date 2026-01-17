@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { signUp, confirmSignUp, resendConfirmationCode } from '../utils/cognitoAuth';
-import vendexLogo from '../assets/logo.png';
+import { signUp, confirmSignUp, resendConfirmationCode } from '../../utils/cognitoAuth';
+import vendexLogo from '../../assets/logo.png';
 import './SignIn.css';
 
 interface SignUpProps {

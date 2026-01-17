@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { getAllVendors } from '../utils/apis.ts';
+import { getAllVendors } from '../../utils/apis.ts';
 import './SupportedVendors.css';
 
 
-import { VendorOverview } from '../utils/responseTypes';
+import { VendorOverview } from '../../utils/responseTypes.ts';
 
 const SupportedVendors = () => {
   const [vendors, setVendors] = useState<VendorOverview[] | null>(null);
