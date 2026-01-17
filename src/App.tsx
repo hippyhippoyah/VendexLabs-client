@@ -3,6 +3,7 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 import Sidebar from "./components/Sidebar.tsx";
 import SignIn from "./components/SignIn.tsx";
 import SignUp from "./components/SignUp.tsx";
+import OAuthCallback from "./components/OAuthCallback.tsx";
 import LandingPage from "./pages/marketing/LandingPage.tsx";
 import { AccountProvider } from "./contexts/AccountContext.tsx";
 import { VendorProvider } from "./contexts/VendorContext.tsx";
@@ -178,6 +179,7 @@ function App() {
       <Route path="/" element={<LandingPage onSignIn={handleSignInClick} />} />
       <Route path="/sign-in" element={<SignIn onSignInSuccess={handleSignInSuccess} onBackToLanding={() => navigate('/')} />} />
       <Route path="/sign-up" element={<SignUp onSignUpSuccess={() => navigate('/sign-in')} onBackToSignIn={() => navigate('/sign-in')} />} />
+      <Route path="/auth/callback" element={<OAuthCallback />} />
       <Route path="/*" element={<ProtectedRoutes onSignOut={handleSignOut} />} />
     </Routes>
   );
