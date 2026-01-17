@@ -1,21 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { VendorAssessment, VendorAssessmentsResponse } from '../../utils/responseTypes';
-import { getVendorAssessments, addVendorAssessment, updateVendorAssessment, deleteVendorAssessment } from '../../utils/apis';
+import { VendorAssessment, VendorAssessmentRequest } from '../../utils/responseTypes';
+import { getVendorAssessments, upsertVendorAssessment, updateVendorAssessment } from '../../utils/apis';
 import { useAccount } from '../../contexts/AccountContext';
 import { useVendorList } from '../../contexts/VendorListContext';
 
-// Example prop for vendorListId, adjust as needed
-interface VendorAssessmentTrackingProps {
-  vendorListId: string;
-}
-
-const initialForm: Omit<VendorAssessment, 'id'> = {
-  sponsor_business_org: '',
-  sponsor_contact: '',
-  compliance_approval_status: '',
-  compliance_comment: '',
-  compliance_contact: '',
-  compliance_assessment_date: '',
+const initialForm: VendorAssessmentRequest = {
+  sponsor_business_department: null,
+  sponsor_contact: null,
+  compliance_approval_status: 'not-started',
+  compliance_comment: null,
+  compliance_contact: null,
+  submission_date: null,
+  approval_date: null,
+  use_case: null,
 };
 
 const VendorAssessmentTracking: React.FC = () => {
@@ -26,8 +23,8 @@ const VendorAssessmentTracking: React.FC = () => {
   const [assessments, setAssessments] = useState<VendorAssessment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [form, setForm] = useState<Omit<VendorAssessment, 'id'>>(initialForm);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState<VendorAssessmentRequest>(initialForm);
+  const [editingAssessment, setEditingAssessment] = useState<VendorAssessment | null>(null);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
   useEffect(() => {
@@ -35,8 +32,10 @@ const VendorAssessmentTracking: React.FC = () => {
     if (!accountId || !vendorListId) return;
     setLoading(true);
     getVendorAssessments(accountId, vendorListId)
-      .then((res: VendorAssessmentsResponse) => {
-        setAssessments(res.assessments);
+      .then((res) => {
+        // API returns array when no vendor-id is provided
+        const assessmentsArray = Array.isArray(res) ? res : [];
+        setAssessments(assessmentsArray);
         setLoading(false);
       })
       .catch((err) => {
@@ -45,8 +44,9 @@ const VendorAssessmentTracking: React.FC = () => {
       });
   }, [accountId, vendorListId]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const value = e.target.value === '' ? null : e.target.value;
+    setForm({ ...form, [e.target.name]: value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,16 +54,27 @@ const VendorAssessmentTracking: React.FC = () => {
     if (!accountId || !vendorListId) return;
     setSubmitting(true);
     try {
-      if (editingId) {
-        await updateVendorAssessment(accountId, vendorListId, editingId, form);
+      // Use vendor_id or vendor_name from editingAssessment if editing
+      const vendorId = editingAssessment?.vendor_id || undefined;
+      const vendorName = editingAssessment?.vendor_name || undefined;
+      
+      const requestData: VendorAssessmentRequest = {
+        ...form,
+        ...(vendorId && { vendor_id: vendorId }),
+        ...(vendorName && { vendor_name: vendorName }),
+      };
+      
+      if (editingAssessment) {
+        await updateVendorAssessment(accountId, vendorListId, requestData, vendorId);
       } else {
-        await addVendorAssessment(accountId, vendorListId, form);
+        await upsertVendorAssessment(accountId, vendorListId, requestData, vendorId);
       }
       // Refresh list
       const res = await getVendorAssessments(accountId, vendorListId);
-      setAssessments(res.assessments);
+      const assessmentsArray = Array.isArray(res) ? res : [];
+      setAssessments(assessmentsArray);
       setForm(initialForm);
-      setEditingId(null);
+      setEditingAssessment(null);
     } catch (err: any) {
       setError(err.message || 'Failed to submit assessment');
     }
@@ -72,27 +83,16 @@ const VendorAssessmentTracking: React.FC = () => {
 
   const handleEdit = (assessment: VendorAssessment) => {
     setForm({
-      sponsor_business_org: assessment.sponsor_business_org,
+      sponsor_business_department: assessment.sponsor_business_department,
       sponsor_contact: assessment.sponsor_contact,
       compliance_approval_status: assessment.compliance_approval_status,
       compliance_comment: assessment.compliance_comment,
       compliance_contact: assessment.compliance_contact,
-      compliance_assessment_date: assessment.compliance_assessment_date,
+      submission_date: assessment.submission_date,
+      approval_date: assessment.approval_date,
+      use_case: assessment.use_case,
     });
-    setEditingId(assessment.id);
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!accountId || !vendorListId) return;
-    setSubmitting(true);
-    try {
-      await deleteVendorAssessment(accountId, vendorListId, id);
-      const res = await getVendorAssessments(accountId, vendorListId);
-      setAssessments(res.assessments);
-    } catch (err: any) {
-      setError(err.message || 'Failed to delete assessment');
-    }
-    setSubmitting(false);
+    setEditingAssessment(assessment);
   };
 
   return (
@@ -112,20 +112,29 @@ const VendorAssessmentTracking: React.FC = () => {
         ) : (
           <>
             <form onSubmit={handleSubmit} style={{ marginBottom: '32px', background: '#f8f9fa', borderRadius: '8px', padding: '24px', border: '1px solid #e5e5e5' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px', color: '#333' }}>{editingId ? 'Edit Assessment' : 'Add Assessment'}</h3>
+              <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px', color: '#333' }}>{editingAssessment ? 'Edit Assessment' : 'Add Assessment'}</h3>
               <div style={{ display: 'grid', gap: '16px', marginBottom: '16px' }}>
-                <input name="sponsor_business_org" value={form.sponsor_business_org} onChange={handleChange} placeholder="Sponsor Business Org" style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '14px' }} required />
-                <input name="sponsor_contact" value={form.sponsor_contact} onChange={handleChange} placeholder="Sponsor Contact" style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '14px' }} required />
-                <input name="compliance_approval_status" value={form.compliance_approval_status} onChange={handleChange} placeholder="Compliance Approval Status" style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '14px' }} required />
-                <textarea name="compliance_comment" value={form.compliance_comment} onChange={handleChange} placeholder="Compliance Comment" style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '14px', minHeight: '60px' }} />
-                <input name="compliance_contact" value={form.compliance_contact} onChange={handleChange} placeholder="Compliance Contact" style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '14px' }} required />
-                <input name="compliance_assessment_date" value={form.compliance_assessment_date} onChange={handleChange} placeholder="Assessment Date" type="date" style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '14px' }} required />
+                <input name="sponsor_business_department" value={form.sponsor_business_department || ''} onChange={handleChange} placeholder="Sponsor Business Department" style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '14px' }} />
+                <input name="sponsor_contact" value={form.sponsor_contact || ''} onChange={handleChange} placeholder="Sponsor Contact" style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '14px' }} />
+                <select name="compliance_approval_status" value={form.compliance_approval_status || 'not-started'} onChange={handleChange} style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '14px' }} required>
+                  <option value="not-started">Not Started</option>
+                  <option value="in-progress">In Progress</option>
+                  <option value="on-hold">On Hold</option>
+                  <option value="approved">Approved</option>
+                  <option value="conditional approval">Conditional Approval</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+                <textarea name="compliance_comment" value={form.compliance_comment || ''} onChange={handleChange} placeholder="Compliance Comment" style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '14px', minHeight: '60px' }} />
+                <input name="compliance_contact" value={form.compliance_contact || ''} onChange={handleChange} placeholder="Compliance Contact" style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '14px' }} />
+                <input name="submission_date" value={form.submission_date || ''} onChange={handleChange} placeholder="Submission Date" type="date" style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '14px' }} />
+                <input name="approval_date" value={form.approval_date || ''} onChange={handleChange} placeholder="Approval Date" type="date" style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '14px' }} />
+                <textarea name="use_case" value={form.use_case || ''} onChange={handleChange} placeholder="Use Case" style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '14px', minHeight: '60px' }} />
               </div>
               <button type="submit" disabled={submitting} style={{ padding: '10px 20px', borderRadius: '4px', background: '#007bff', color: 'white', fontWeight: 500, border: 'none', fontSize: '14px', cursor: 'pointer' }}>
-                {submitting ? (editingId ? 'Updating...' : 'Adding...') : (editingId ? 'Update Assessment' : 'Add Assessment')}
+                {submitting ? (editingAssessment ? 'Updating...' : 'Adding...') : (editingAssessment ? 'Update Assessment' : 'Add Assessment')}
               </button>
-              {editingId && (
-                <button type="button" onClick={() => { setForm(initialForm); setEditingId(null); }} style={{ marginLeft: '16px', padding: '10px 20px', borderRadius: '4px', background: '#6c757d', color: 'white', fontWeight: 500, border: 'none', fontSize: '14px', cursor: 'pointer' }}>
+              {editingAssessment && (
+                <button type="button" onClick={() => { setForm(initialForm); setEditingAssessment(null); }} style={{ marginLeft: '16px', padding: '10px 20px', borderRadius: '4px', background: '#6c757d', color: 'white', fontWeight: 500, border: 'none', fontSize: '14px', cursor: 'pointer' }}>
                   Cancel
                 </button>
               )}
@@ -139,18 +148,34 @@ const VendorAssessmentTracking: React.FC = () => {
                   {assessments.map((assessment) => (
                     <div key={assessment.id} style={{ background: '#f8f9fa', borderRadius: '8px', padding: '16px', border: '1px solid #e5e5e5', position: 'relative' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                        <span style={{ fontWeight: 600, color: '#333', fontSize: '15px' }}>{assessment.sponsor_business_org}</span>
+                        <span style={{ fontWeight: 600, color: '#333', fontSize: '15px' }}>
+                          {assessment.vendor_name || assessment.vendor_id || 'Unknown Vendor'}
+                        </span>
                         <span style={{ fontSize: '13px', color: '#666' }}>{assessment.compliance_approval_status}</span>
                       </div>
-                      <div style={{ fontSize: '13px', color: '#333', marginBottom: '4px' }}><strong>Contact:</strong> {assessment.sponsor_contact}</div>
-                      <div style={{ fontSize: '13px', color: '#333', marginBottom: '4px' }}><strong>Compliance Contact:</strong> {assessment.compliance_contact}</div>
-                      <div style={{ fontSize: '13px', color: '#333', marginBottom: '4px' }}><strong>Date:</strong> {assessment.compliance_assessment_date}</div>
+                      {assessment.sponsor_business_department && (
+                        <div style={{ fontSize: '13px', color: '#333', marginBottom: '4px' }}><strong>Department:</strong> {assessment.sponsor_business_department}</div>
+                      )}
+                      {assessment.sponsor_contact && (
+                        <div style={{ fontSize: '13px', color: '#333', marginBottom: '4px' }}><strong>Contact:</strong> {assessment.sponsor_contact}</div>
+                      )}
+                      {assessment.compliance_contact && (
+                        <div style={{ fontSize: '13px', color: '#333', marginBottom: '4px' }}><strong>Compliance Contact:</strong> {assessment.compliance_contact}</div>
+                      )}
+                      {assessment.submission_date && (
+                        <div style={{ fontSize: '13px', color: '#333', marginBottom: '4px' }}><strong>Submission Date:</strong> {assessment.submission_date}</div>
+                      )}
+                      {assessment.approval_date && (
+                        <div style={{ fontSize: '13px', color: '#333', marginBottom: '4px' }}><strong>Approval Date:</strong> {assessment.approval_date}</div>
+                      )}
+                      {assessment.use_case && (
+                        <div style={{ fontSize: '13px', color: '#333', marginBottom: '4px' }}><strong>Use Case:</strong> {assessment.use_case}</div>
+                      )}
                       {assessment.compliance_comment && (
                         <div style={{ fontSize: '13px', color: '#333', marginBottom: '4px' }}><strong>Comment:</strong> {assessment.compliance_comment}</div>
                       )}
                       <div style={{ position: 'absolute', top: '16px', right: '16px', display: 'flex', gap: '8px' }}>
                         <button onClick={() => handleEdit(assessment)} style={{ padding: '6px 12px', borderRadius: '4px', background: '#ffc107', color: '#333', fontWeight: 500, border: 'none', fontSize: '13px', cursor: 'pointer' }}>Edit</button>
-                        <button onClick={() => handleDelete(assessment.id)} style={{ padding: '6px 12px', borderRadius: '4px', background: '#dc3545', color: 'white', fontWeight: 500, border: 'none', fontSize: '13px', cursor: 'pointer' }}>Delete</button>
                       </div>
                     </div>
                   ))}

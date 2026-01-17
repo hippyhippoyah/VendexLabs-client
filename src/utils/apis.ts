@@ -1,4 +1,4 @@
-import { VendorListUsersResponse, UsersByAccountIdResponse, AllAccountsResponse, AccountSubscriptionsResponse, VendorOverview, VendorAnalysis, VendorAssessment, VendorAssessmentsResponse, RSSFeed, DashboardMetrics } from './responseTypes';
+import { VendorListUsersResponse, UsersByAccountIdResponse, AllAccountsResponse, AccountSubscriptionsResponse, VendorOverview, VendorAnalysis, VendorAssessment, VendorAssessmentRequest, RSSFeed, DashboardMetrics } from './responseTypes';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL
 
@@ -283,86 +283,100 @@ export const saveVendorsToList = async (accountId: string, vendorList: string, v
     return await response.json();
 }
 
-// Vendor Assessment Types
-
 // Vendor Assessments API
-export const addVendorAssessment = async (
-  accountId: string,
-  vendorListId: string,
-  data: Omit<VendorAssessment, 'id'>
-): Promise<{ id: string }> => {
-  const accessToken = getIdToken();
-  const response = await fetch(`${API_BASE_URL}/vendor-assessments?account-id=${encodeURIComponent(accountId)}&vendor-list-id=${encodeURIComponent(vendorListId)}`, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${accessToken}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(data)
-  });
-  if (!response.ok) {
-    throw new Error("Network response was not ok");
-  }
-  return await response.json();
-};
 
+/**
+ * GET /assessments
+ * Returns vendor assessment(s):
+ * - With vendor-id: returns the assessment for that vendor, or null if none exists
+ * - Without vendor-id: returns all assessments for the vendor list
+ */
 export const getVendorAssessments = async (
   accountId: string,
-  vendorListId: string
-): Promise<VendorAssessmentsResponse> => {
+  vendorListId: string,
+  vendorId?: string
+): Promise<VendorAssessment | VendorAssessment[] | null> => {
   const accessToken = getIdToken();
-  const response = await fetch(`${API_BASE_URL}/vendor-assessments?account-id=${encodeURIComponent(accountId)}&vendor-list-id=${encodeURIComponent(vendorListId)}`, {
+  const params = new URLSearchParams({
+    'account-id': accountId,
+    'vendor-list-id': vendorListId
+  });
+  
+  if (vendorId) {
+    params.append('vendor-id', vendorId);
+  }
+  
+  const response = await fetch(`${API_BASE_URL}/vendor-assessments?${params.toString()}`, {
     method: "GET",
     headers: {
       "Authorization": `Bearer ${accessToken}`,
       "Content-Type": "application/json"
     }
   });
+  
   if (!response.ok) {
     throw new Error("Network response was not ok");
   }
-  return await response.json();
+  
+  // If vendor-id was provided, return single assessment or null
+  if (vendorId) {
+    const data = await response.json();
+    return data === null ? null : data as VendorAssessment;
+  }
+  
+  // Otherwise return array of assessments
+  return await response.json() as VendorAssessment[];
 };
 
-export const updateVendorAssessment = async (
+/**
+ * POST/PUT /assessments
+ * Upsert operation (creates if missing, updates if exists)
+ * Both POST and PUT perform the same upsert operation
+ * vendor-id can be in query params or body (vendor_id or vendor_name)
+ */
+export const upsertVendorAssessment = async (
   accountId: string,
   vendorListId: string,
-  assessmentId: string,
-  data: Partial<Omit<VendorAssessment, 'id'>>
-): Promise<string> => {
+  data: VendorAssessmentRequest,
+  vendorId?: string
+): Promise<VendorAssessment> => {
   const accessToken = getIdToken();
-  const response = await fetch(`${API_BASE_URL}/vendor-assessments?account-id=${encodeURIComponent(accountId)}&vendor-list-id=${encodeURIComponent(vendorListId)}&assessment-id=${encodeURIComponent(assessmentId)}`, {
-    method: "PUT",
+  const params = new URLSearchParams({
+    'account-id': accountId,
+    'vendor-list-id': vendorListId
+  });
+  
+  if (vendorId) {
+    params.append('vendor-id', vendorId);
+  }
+  
+  // Ensure compliance_approval_status defaults to 'not-started' if not provided
+  const requestBody: VendorAssessmentRequest = {
+    ...data,
+    compliance_approval_status: data.compliance_approval_status || 'not-started'
+  };
+  
+  const response = await fetch(`${API_BASE_URL}/vendor-assessments?${params.toString()}`, {
+    method: "POST",
     headers: {
       "Authorization": `Bearer ${accessToken}`,
       "Content-Type": "application/json"
     },
-    body: JSON.stringify(data)
+    body: JSON.stringify(requestBody)
   });
+  
   if (!response.ok) {
     throw new Error("Network response was not ok");
   }
-  return await response.text();
+  
+  return await response.json() as VendorAssessment;
 };
 
-export const deleteVendorAssessment = async (
-  accountId: string,
-  vendorListId: string,
-  assessmentId: string
-): Promise<string> => {
-  const accessToken = getIdToken();
-  const response = await fetch(`${API_BASE_URL}/vendor-assessments?account-id=${encodeURIComponent(accountId)}&vendor-list-id=${encodeURIComponent(vendorListId)}&assessment-id=${encodeURIComponent(assessmentId)}`, {
-    method: "DELETE",
-    headers: {
-      "Authorization": `Bearer ${accessToken}`,
-      "Content-Type": "application/json"
-    }
-  });
-  if (!response.ok) {
-    throw new Error("Network response was not ok");
-  }
-  return await response.text();
-};
+/**
+ * PUT /assessments
+ * Alias for upsertVendorAssessment (POST and PUT are functionally identical)
+ */
+export const updateVendorAssessment = upsertVendorAssessment;
 
 // Dashboard API Functions
 export const getRecentIncidents = async (

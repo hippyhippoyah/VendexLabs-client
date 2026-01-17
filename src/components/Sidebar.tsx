@@ -1,7 +1,7 @@
 import React, { useState, useEffect, ChangeEvent } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import vendexLogo from '../assets/logo.png';
-import { getAllAccounts } from '../utils/apis';
+import { getAllAccounts } from '../utils/apis.ts';
 import { useAccount } from '../contexts/AccountContext.tsx';
 import './Sidebar.css';
 
@@ -85,6 +85,58 @@ const Sidebar: React.FC = () => {
     </svg>
   );
 
+  const GeneralComplianceIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M16.5 3.5L7.5 12.5L3.5 8.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+      <path d="M13.5 3.5H16.5V6.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+    </svg>
+  );
+
+  const PrivacyControlsIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 10V15.5C10 16.3284 9.32843 17 8.5 17H4.5C3.67157 17 3 16.3284 3 15.5V8.5C3 7.67157 3.67157 7 4.5 7H6.5" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+      <path d="M10 3H15.5C16.3284 3 17 3.67157 17 4.5V8.5C17 9.32843 16.3284 10 15.5 10H10" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+      <path d="M10 3V7H6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+      <path d="M7 10L10 13L13 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+    </svg>
+  );
+
+  const BusinessMaturityIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M3 16L10 3L17 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+      <path d="M6 12H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+      <path d="M7 9H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+    </svg>
+  );
+
+  const SecurityNewsIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M4 4H16C16.5523 4 17 4.44772 17 5V15C17 15.5523 16.5523 16 16 16H4C3.44772 16 3 15.5523 3 15V5C3 4.44772 3.44772 4 4 4Z" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+      <path d="M6 7H14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+      <path d="M6 10H12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+      <path d="M6 13H10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+      <circle cx="14" cy="10" r="1.5" fill="currentColor" opacity="0.9"/>
+    </svg>
+  );
+
+  const AssessmentTrackingIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="3" y="4" width="14" height="12" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+      <path d="M7 8H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+      <path d="M7 11H11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+      <path d="M3 7H17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+      <circle cx="15" cy="11" r="1.5" fill="currentColor" opacity="0.9"/>
+    </svg>
+  );
+
+  const VendorRiskIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 3L3 7V10C3 13.866 6.13401 17 10 17C13.866 17 17 13.866 17 10V7L10 3Z" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+      <path d="M10 10V13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+      <circle cx="10" cy="7" r="1" fill="currentColor" opacity="0.9"/>
+    </svg>
+  );
+
   // Vendor sub-items
   const vendorSubItems = [
     { path: '/vendors', label: 'Your Vendors' },
@@ -99,11 +151,11 @@ const Sidebar: React.FC = () => {
   ];
 
   const vendorNavItems = [
-    { path: `/vendors/${vendorName}/general-compliance`, label: 'General Compliance', icon: '✅' },
-    { path: `/vendors/${vendorName}/privacy-controls`, label: 'Privacy Controls', icon: '🔒' },
-    { path: `/vendors/${vendorName}/business-maturity`, label: 'Business Maturity', icon: '📈' },
-    { path: `/vendors/${vendorName}/security-instances`, label: 'Recent Security Instances in News', icon: '📰' },
-    { path: `/vendors/${vendorName}/assessment-tracking`, label: 'Vendor Assessment Tracking', icon: '📊' },
+    { path: `/vendors/${vendorName}/general-compliance`, label: 'General Compliance', icon: GeneralComplianceIcon },
+    { path: `/vendors/${vendorName}/privacy-controls`, label: 'Privacy Controls', icon: PrivacyControlsIcon },
+    { path: `/vendors/${vendorName}/business-maturity`, label: 'Business Maturity', icon: BusinessMaturityIcon },
+    { path: `/vendors/${vendorName}/security-instances`, label: 'Recent Security Instances in News', icon: SecurityNewsIcon },
+    { path: `/vendors/${vendorName}/assessment-tracking`, label: 'Vendor Assessment Tracking', icon: AssessmentTrackingIcon },
   ];
 
   useEffect(() => {
@@ -218,21 +270,24 @@ const Sidebar: React.FC = () => {
                   to={`/vendors/${vendorName}`}
                   className={`nav-link ${location.pathname === `/vendors/${vendorName}` ? 'active' : ''}`}
                 >
-                  <span className="nav-icon">📊</span>
+                  <span className="nav-icon"><VendorRiskIcon /></span>
                   <span className="nav-label">Vendor Risk</span>
                 </Link>
               </li>
-              {vendorNavItems.map((item) => (
-                <li key={item.path} className="nav-item vendor-nav-item">
-                  <Link 
-                    to={item.path} 
-                    className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
-                  >
-                    <span className="nav-icon">{item.icon}</span>
-                    <span className="nav-label">{item.label}</span>
-                  </Link>
-                </li>
-              ))}
+              {vendorNavItems.map((item) => {
+                const IconComponent = item.icon;
+                return (
+                  <li key={item.path} className="nav-item vendor-nav-item">
+                    <Link 
+                      to={item.path} 
+                      className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
+                    >
+                      <span className="nav-icon"><IconComponent /></span>
+                      <span className="nav-label">{item.label}</span>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </>
         ) : (

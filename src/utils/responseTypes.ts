@@ -79,14 +79,41 @@ export type VendorAnalysis = {
   revenue_estimate: string;
 };
 
+export type ComplianceApprovalStatus = 
+  | 'not-started' 
+  | 'in-progress' 
+  | 'on-hold' 
+  | 'approved' 
+  | 'conditional approval' 
+  | 'rejected';
+
 export type VendorAssessment = {
   id: string;
-  sponsor_business_org: string;
-  sponsor_contact: string;
-  compliance_approval_status: string;
-  compliance_comment: string;
-  compliance_contact: string;
-  compliance_assessment_date: string;
+  vendor_id: string | null;
+  vendor_name: string | null;
+  sponsor_business_department: string | null;
+  sponsor_contact: string | null;
+  compliance_approval_status: ComplianceApprovalStatus;
+  compliance_comment: string | null;
+  compliance_contact: string | null;
+  submission_date: string | null;
+  approval_date: string | null;
+  use_case: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type VendorAssessmentRequest = {
+  vendor_id?: string;
+  vendor_name?: string;
+  sponsor_business_department?: string | null;
+  sponsor_contact?: string | null;
+  compliance_approval_status?: ComplianceApprovalStatus;
+  compliance_comment?: string | null;
+  compliance_contact?: string | null;
+  submission_date?: string | null;
+  approval_date?: string | null;
+  use_case?: string | null;
 };
 
 export type VendorAssessmentsResponse = {
